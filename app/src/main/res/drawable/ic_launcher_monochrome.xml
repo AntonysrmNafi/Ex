@@ -1,0 +1,15 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Monochrome layer: the system tints this to a single color for themed icons
+         (Android 13+ Material You), so it must be fully opaque white shapes only,
+         no color of its own. Same wallet silhouette as the full-color foreground. -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M24,36 L84,36 L84,72 L24,72 Z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M70,48 m-6,0 a6,6 0 1,0 12,0 a6,6 0 1,0 -12,0" />
+</vector>
