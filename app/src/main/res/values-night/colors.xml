@@ -1,0 +1,5 @@
+<resources>
+    <!-- Mirrors ui/theme/Color.kt's DarkBackground; brand_primary stays the same in both modes. -->
+    <color name="window_background">#14161A</color>
+    <color name="status_bar">#14161A</color>
+</resources>
