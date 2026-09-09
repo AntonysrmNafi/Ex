@@ -1,0 +1,8 @@
+<resources>
+    <!-- Mirrors ui/theme/Color.kt's LightBackground/BrandPrimary so the pre-Compose window
+         (cold-start background, status bar, splash screen) already matches the app's own
+         palette instead of showing a plain white/black flash before Compose draws. -->
+    <color name="window_background">#F7F7F5</color>
+    <color name="status_bar">#F7F7F5</color>
+    <color name="brand_primary">#2E7D32</color>
+</resources>
