@@ -3,6 +3,7 @@ package com.blockveil.expense.tracker.ui.components
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.selection.selectable
@@ -23,6 +24,7 @@ private val ChipShape = RoundedCornerShape(50)
  * A wrapping row of pill-shaped filter chips, exactly one of which is selected at a time.
  * Matches ChipRow in the source design.
  */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun <T> ChipRow(
     options: List<T>,
