@@ -2,6 +2,7 @@ package com.blockveil.expense.tracker
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
@@ -104,6 +105,15 @@ private fun AppRoot() {
     var selectedTab by remember { mutableStateOf(AppTab.HOME) }
     var pushedScreen by remember { mutableStateOf<PushedScreen>(PushedScreen.None) }
     val feedback = rememberAppFeedbackState()
+
+    // Without these, the system back gesture/button exits the app from anywhere instead of
+    // navigating up a level. Mutually exclusive by condition (not composition order) so it's
+    // unambiguous which one fires when both could apply: closing a pushed screen always takes
+    // priority over switching tabs back to Home.
+    BackHandler(enabled = pushedScreen != PushedScreen.None) { pushedScreen = PushedScreen.None }
+    BackHandler(enabled = pushedScreen == PushedScreen.None && selectedTab != AppTab.HOME) {
+        selectedTab = AppTab.HOME
+    }
 
     val openTransaction = { id: Long? -> pushedScreen = PushedScreen.TransactionForm(existingId = id) }
 
