@@ -54,7 +54,7 @@ fun computeDueDates(
 
     val cutoff = if (endDate != null && endDate.isBefore(today)) endDate else today
     val due = mutableListOf<LocalDate>()
-    var cursor = startDate
+    var cursor: LocalDate = startDate
     var guard = 0
     while (!cursor.isAfter(cutoff) && guard < 500) {
         if (cursor !in already) due += cursor
