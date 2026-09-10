@@ -44,6 +44,8 @@ fun SettingsScreen(
     currencyCountry: String,
     currencyPosition: CurrencyPosition,
     onOpenCurrency: () -> Unit,
+    onOpenCategoryManagement: () -> Unit,
+    onOpenAccountManagement: () -> Unit,
     onBackup: () -> Unit,
     onRestore: () -> Unit,
     onClearAllData: () -> Unit,
@@ -83,6 +85,10 @@ fun SettingsScreen(
                 onClick = onOpenCurrency,
                 modifier = Modifier.padding(bottom = 20.dp),
             )
+
+            SectionHeader(title = "Manage")
+            SettingsLinkRow(label = "Category Management", onClick = onOpenCategoryManagement, modifier = Modifier.padding(bottom = 8.dp))
+            SettingsLinkRow(label = "Account Management", onClick = onOpenAccountManagement, modifier = Modifier.padding(bottom = 20.dp))
 
             SectionHeader(title = "Data")
             SettingsActionRow(
