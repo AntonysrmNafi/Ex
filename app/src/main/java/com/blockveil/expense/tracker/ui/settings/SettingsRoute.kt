@@ -1,6 +1,7 @@
 package com.blockveil.expense.tracker.ui.settings
 
 import android.net.Uri
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
@@ -21,6 +22,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.blockveil.expense.tracker.ExpenseTrackerApp
 import com.blockveil.expense.tracker.ui.components.ConfirmDialog
 import com.blockveil.expense.tracker.ui.components.LocalAppFeedback
+import com.blockveil.expense.tracker.util.resolveCurrencyDisplay
 import kotlinx.coroutines.launch
 import java.io.BufferedReader
 import java.io.InputStreamReader
@@ -31,6 +33,8 @@ private sealed class SettingsPage {
     data object Main : SettingsPage()
     data object Currency : SettingsPage()
     data object CurrencyPicker : SettingsPage()
+    data object CategoryManagement : SettingsPage()
+    data object AccountManagement : SettingsPage()
     data class Info(val key: InfoPageKey) : SettingsPage()
 }
 
@@ -53,6 +57,16 @@ fun SettingsRoute(onClose: () -> Unit) {
 
     var page by remember { mutableStateOf<SettingsPage>(SettingsPage.Main) }
     var showClearConfirm by remember { mutableStateOf(false) }
+    val expenseCategories by viewModel.expenseCategories.collectAsState()
+    val incomeCategories by viewModel.incomeCategories.collectAsState()
+    val accounts by viewModel.accounts.collectAsState()
+
+    // Mirrors the BackHandler in MainActivity.AppRoot one level down: back inside Settings
+    // steps back through its own page stack first (CurrencyPicker -> Currency -> Main, or any
+    // other sub-page -> Main) before ever reaching the outer handler that closes Settings itself.
+    BackHandler(enabled = page != SettingsPage.Main) {
+        page = if (page == SettingsPage.CurrencyPicker) SettingsPage.Currency else SettingsPage.Main
+    }
 
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -94,6 +108,8 @@ fun SettingsRoute(onClose: () -> Unit) {
                 currencyCountry = settings.currencyCountry,
                 currencyPosition = settings.currencyPosition,
                 onOpenCurrency = { page = SettingsPage.Currency },
+                onOpenCategoryManagement = { page = SettingsPage.CategoryManagement },
+                onOpenAccountManagement = { page = SettingsPage.AccountManagement },
                 onBackup = {
                     val fileName = "blockveil-backup-${LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE)}.csv"
                     backupLauncher.launch(fileName)
@@ -123,6 +139,18 @@ fun SettingsRoute(onClose: () -> Unit) {
             is SettingsPage.Info -> INFO_PAGES[current.key]?.let { content ->
                 InfoScreen(content = content, onBack = { page = SettingsPage.Main })
             }
+            SettingsPage.CategoryManagement -> CategoryManagementScreen(
+                expenseCategories = expenseCategories,
+                incomeCategories = incomeCategories,
+                onDelete = viewModel::onDeleteCategory,
+                onBack = { page = SettingsPage.Main },
+            )
+            SettingsPage.AccountManagement -> AccountManagementScreen(
+                accounts = accounts,
+                currency = resolveCurrencyDisplay(settings),
+                onDelete = viewModel::onDeleteAccount,
+                onBack = { page = SettingsPage.Main },
+            )
         }
     }
 
