@@ -97,7 +97,7 @@ fun TransactionFormScreen(
         }
     }
 
-    Column(modifier = Modifier.fillMaxSize()) {
+    Column(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
         PageHeader(title = "Transaction", onClose = onClose)
 
         Column(
