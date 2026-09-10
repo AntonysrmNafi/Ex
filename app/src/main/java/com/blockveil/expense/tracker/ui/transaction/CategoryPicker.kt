@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -45,6 +46,7 @@ import com.blockveil.expense.tracker.ui.theme.ExpenseTrackerTheme
  * case-insensitive duplicate check: typing an existing category's name just selects it
  * rather than creating a second copy.
  */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun CategoryPicker(
     label: String,
