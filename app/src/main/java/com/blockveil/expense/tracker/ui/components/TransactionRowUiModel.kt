@@ -7,6 +7,7 @@ import com.blockveil.expense.tracker.data.local.entity.CustomCategoryEntity
 import com.blockveil.expense.tracker.data.local.entity.TransactionEntity
 import com.blockveil.expense.tracker.data.model.TransactionType
 import com.blockveil.expense.tracker.util.accountName
+import com.blockveil.expense.tracker.util.categoryColor
 import com.blockveil.expense.tracker.util.formatDateDisplay
 
 /**
