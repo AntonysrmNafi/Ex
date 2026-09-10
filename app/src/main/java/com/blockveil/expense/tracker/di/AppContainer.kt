@@ -11,6 +11,9 @@ import com.blockveil.expense.tracker.data.repository.GoalRepository
 import com.blockveil.expense.tracker.data.repository.SubscriptionRepository
 import com.blockveil.expense.tracker.data.repository.TransactionRepository
 import com.blockveil.expense.tracker.data.repository.TransferRepository
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 /** Single place every screen's ViewModel pulls its repositories from, via [ExpenseTrackerApp]. */
 class AppContainer(context: Context) {
@@ -27,4 +30,13 @@ class AppContainer(context: Context) {
     val settingsRepository = SettingsRepository(context)
     val sharedMonthState = SharedMonthState()
     val backupManager = BackupManager(database, settingsRepository)
+
+    init {
+        // Opens (and, on first-ever launch, creates) the SQLite file on a background thread
+        // right away, instead of letting whichever screen's ViewModel happens to run the first
+        // real query pay that one-time file-open cost while the user is already looking at it.
+        CoroutineScope(Dispatchers.IO).launch {
+            database.openHelper.writableDatabase
+        }
+    }
 }
