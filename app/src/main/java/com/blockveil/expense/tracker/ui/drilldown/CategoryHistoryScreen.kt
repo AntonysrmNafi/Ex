@@ -49,7 +49,7 @@ fun CategoryHistoryScreen(
     onTxnClick: (Long) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Column(modifier = modifier.fillMaxSize()) {
+    Column(modifier = modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
         BackHeader(
             title = category,
             onBack = onBack,
