@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -48,6 +49,7 @@ import com.blockveil.expense.tracker.ui.theme.BrandPrimary
  * (name, loan amount, settlement amount, deposit-to account). Matches the add-account Card
  * in MoreScreen and handleAddAccount exactly.
  */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun AddAccountCard(
     savingsAccounts: List<AccountEntity>,
