@@ -15,6 +15,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.semantics.invisibleToUser
@@ -57,6 +58,7 @@ private fun randomParticles(): List<BurstParticle> = List(ParticleCount) { i ->
  * `if (reduceMotion) return` guard, and is marked invisible to accessibility services since it's
  * purely decorative celebration, not content a screen reader user needs announced.
  */
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun MoneyBurstHost(trigger: Long, modifier: Modifier = Modifier) {
     val reduceMotion = rememberReduceMotion()
