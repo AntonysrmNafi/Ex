@@ -18,6 +18,7 @@ import kotlinx.coroutines.launch
 /** Single place every screen's ViewModel pulls its repositories from, via [ExpenseTrackerApp]. */
 class AppContainer(context: Context) {
 
+    val appContext: Context = context.applicationContext
     private val database = AppDatabase.getInstance(context)
 
     val accountRepository = AccountRepository(database)
