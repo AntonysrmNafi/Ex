@@ -33,7 +33,7 @@ import androidx.compose.ui.unit.sp
 import com.blockveil.expense.tracker.data.local.entity.CustomCategoryEntity
 import com.blockveil.expense.tracker.ui.components.AppCard
 import com.blockveil.expense.tracker.ui.components.ConfirmDialog
-import com.blockveil.expense.tracker.ui.components.PageHeader
+import com.blockveil.expense.tracker.ui.components.BackHeader
 import com.blockveil.expense.tracker.ui.components.SectionHeader
 
 /**
@@ -54,7 +54,7 @@ fun CategoryManagementScreen(
     var pendingDelete by remember { mutableStateOf<CustomCategoryEntity?>(null) }
 
     Column(modifier = modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
-        PageHeader(title = "Category Management", onClose = onBack)
+        BackHeader(title = "Category Management", onBack = onBack)
 
         Column(modifier = Modifier.padding(horizontal = 20.dp)) {
             SectionHeader(title = "Expense categories", modifier = Modifier.padding(top = 4.dp))
