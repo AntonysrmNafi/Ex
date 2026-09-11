@@ -1,5 +1,7 @@
 package com.blockveil.expense.tracker.util
 
+import java.util.Locale
+
 /** One row from the world currency list: a country, its currency code, symbol, and flag. */
 data class Currency(
     val country: String,
@@ -81,4 +83,17 @@ object CurrencyCatalog {
     )
 
     fun findByCountry(country: String): Currency? = all.firstOrNull { it.country == country }
+}
+
+/**
+ * Best-effort match of the device's region setting to one of [CurrencyCatalog.all]'s country
+ * names, for picking the default currency the very first time the app runs (before the user
+ * has ever opened Settings > Currency). Falls back to Ireland/EUR if the device's region is
+ * blank or doesn't match anything in the catalog, exactly as requested.
+ */
+fun detectDefaultCurrencyCountry(): String {
+    val isoCountry = Locale.getDefault().country
+    if (isoCountry.isBlank()) return "Ireland"
+    val displayName = Locale("", isoCountry).getDisplayCountry(Locale.ENGLISH)
+    return CurrencyCatalog.all.firstOrNull { it.country.equals(displayName, ignoreCase = true) }?.country ?: "Ireland"
 }
