@@ -1,5 +1,6 @@
 package com.blockveil.expense.tracker.ui.goals
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -10,6 +11,8 @@ import com.blockveil.expense.tracker.data.datastore.SettingsRepository
 import com.blockveil.expense.tracker.data.local.entity.GoalEntity
 import com.blockveil.expense.tracker.data.repository.GoalRepository
 import com.blockveil.expense.tracker.di.AppContainer
+import com.blockveil.expense.tracker.notifications.scheduleGoalDeletion
+import com.blockveil.expense.tracker.notifications.showGoalReachedNotification
 import com.blockveil.expense.tracker.util.CurrencyDisplay
 import com.blockveil.expense.tracker.util.resolveCurrencyDisplay
 import kotlinx.coroutines.flow.SharingStarted
@@ -22,6 +25,7 @@ import kotlin.math.min
 class GoalsViewModel(
     private val goalRepository: GoalRepository,
     settingsRepository: SettingsRepository,
+    private val appContext: Context,
 ) : ViewModel() {
 
     val goals: StateFlow<List<GoalEntity>> = goalRepository.observeAll()
@@ -42,10 +46,19 @@ class GoalsViewModel(
         }
     }
 
-    /** Matches handleContributeGoal exactly: caps at the target, never overshoots. */
+    /**
+     * Matches handleContributeGoal exactly: caps at the target, never overshoots. A
+     * contribution that newly crosses the target (it wasn't already there before this one)
+     * fires the goal-reached notification and schedules the goal's 24h auto-delete.
+     */
     fun onContribute(goal: GoalEntity, amount: Double) {
         viewModelScope.launch {
+            val newlyReached = goal.savedAmount < goal.targetAmount && goal.savedAmount + amount >= goal.targetAmount
             goalRepository.update(goal.copy(savedAmount = min(goal.savedAmount + amount, goal.targetAmount)))
+            if (newlyReached) {
+                showGoalReachedNotification(appContext, goal.id, goal.name)
+                scheduleGoalDeletion(appContext, goal.id)
+            }
         }
     }
 
@@ -59,6 +72,7 @@ class GoalsViewModel(
                 GoalsViewModel(
                     goalRepository = container.goalRepository,
                     settingsRepository = container.settingsRepository,
+                    appContext = container.appContext,
                 )
             }
         }
