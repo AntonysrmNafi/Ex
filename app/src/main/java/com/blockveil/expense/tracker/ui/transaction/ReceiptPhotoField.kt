@@ -1,5 +1,7 @@
 package com.blockveil.expense.tracker.ui.transaction
 
+import android.Manifest
+import android.content.pm.PackageManager
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
@@ -39,6 +41,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
 import coil.compose.AsyncImage
 import com.blockveil.expense.tracker.util.createReceiptPhotoUri
 
@@ -67,6 +70,22 @@ fun ReceiptPhotoField(
             onError("Couldn't capture photo, try again")
         }
     }
+
+    fun launchCamera() {
+        val uri = createReceiptPhotoUri(context)
+        pendingCameraUri = uri
+        cameraLauncher.launch(uri)
+    }
+
+    // The manifest declares the CAMERA permission (it's dangerous-level, API 23+), so it must
+    // be granted at runtime before the capture intent is launched. Without this check, the
+    // app previously went straight to cameraLauncher.launch() unconditionally, which some
+    // camera apps (notably MIUI's, on the phone this shipped to) crash out of rather than
+    // showing their own permission prompt.
+    val cameraPermissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+        if (granted) launchCamera() else onError("Camera permission is needed to take a photo")
+    }
+
     val galleryLauncher = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
         if (uri != null) onPhotoChange(uri)
     }
@@ -118,9 +137,8 @@ fun ReceiptPhotoField(
                     text = "Take photo",
                     modifier = Modifier.weight(1f),
                     onClick = {
-                        val uri = createReceiptPhotoUri(context)
-                        pendingCameraUri = uri
-                        cameraLauncher.launch(uri)
+                        val granted = ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED
+                        if (granted) launchCamera() else cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
                     },
                 )
                 AttachButton(
