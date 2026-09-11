@@ -67,10 +67,11 @@ import java.time.LocalDate
 fun TransactionFormScreen(
     existingId: Long?,
     onClose: () -> Unit,
+    instanceKey: Long = System.nanoTime(),
 ) {
     val app = LocalContext.current.applicationContext as ExpenseTrackerApp
     val viewModel: TransactionFormViewModel = viewModel(
-        key = "transaction_form_$existingId",
+        key = "transaction_form_${existingId}_$instanceKey",
         factory = TransactionFormViewModel.factory(app.container, existingId),
     )
 
