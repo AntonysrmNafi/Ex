@@ -11,13 +11,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.blockveil.expense.tracker.ui.components.PageHeader
+import com.blockveil.expense.tracker.ui.components.BackHeader
 
 /** One static About-section page: title header, scrollable body text. Matches InfoPage exactly. */
 @Composable
 fun InfoScreen(content: InfoPageContent, onBack: () -> Unit, modifier: Modifier = Modifier) {
     Column(modifier = modifier.fillMaxSize()) {
-        PageHeader(title = content.title, onClose = onBack)
+        BackHeader(title = content.title, onBack = onBack)
         Text(
             text = content.body,
             fontSize = 12.sp,
