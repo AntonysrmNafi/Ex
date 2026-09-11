@@ -32,7 +32,7 @@ fun HomeRoute(
 
     HomeScreen(
         filterLabel = uiState.filterLabel,
-        isMonthFilter = uiState.isMonthFilter,
+        showPeriodArrows = uiState.showPeriodArrows,
         onPrevMonth = viewModel::onPrevMonth,
         onNextMonth = viewModel::onNextMonth,
         onOpenDateFilter = { showDateFilterSheet = true },
