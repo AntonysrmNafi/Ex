@@ -149,6 +149,8 @@ fun SettingsRoute(onClose: () -> Unit) {
                 accounts = accounts,
                 currency = resolveCurrencyDisplay(settings),
                 onDelete = viewModel::onDeleteAccount,
+                onSetHidden = viewModel::onSetAccountHidden,
+                onDeleteBlocked = { message -> feedback.showToast(message) },
                 onBack = { page = SettingsPage.Main },
             )
         }
