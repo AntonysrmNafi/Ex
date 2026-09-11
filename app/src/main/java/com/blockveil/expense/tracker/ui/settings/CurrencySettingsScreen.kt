@@ -10,7 +10,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.blockveil.expense.tracker.data.model.CurrencyFormat
 import com.blockveil.expense.tracker.data.model.CurrencyPosition
-import com.blockveil.expense.tracker.ui.components.PageHeader
+import com.blockveil.expense.tracker.ui.components.BackHeader
 import com.blockveil.expense.tracker.ui.components.RadioRow
 import com.blockveil.expense.tracker.ui.components.SectionHeader
 import com.blockveil.expense.tracker.util.CurrencyCatalog
@@ -37,7 +37,7 @@ fun CurrencySettingsScreen(
             .fillMaxSize()
             .verticalScroll(rememberScrollState()),
     ) {
-        PageHeader(title = "Currency", onClose = onBack)
+        BackHeader(title = "Currency", onBack = onBack)
 
         Column(modifier = Modifier.padding(horizontal = 20.dp)) {
             SectionHeader(title = "Country", modifier = Modifier.padding(top = 4.dp))
