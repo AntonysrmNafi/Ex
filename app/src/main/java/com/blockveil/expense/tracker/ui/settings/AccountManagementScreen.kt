@@ -2,6 +2,7 @@ package com.blockveil.expense.tracker.ui.settings
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -12,7 +13,10 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CreditCard
-import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -29,8 +33,8 @@ import androidx.compose.ui.unit.sp
 import com.blockveil.expense.tracker.data.local.entity.AccountEntity
 import com.blockveil.expense.tracker.data.model.AccountCategory
 import com.blockveil.expense.tracker.ui.components.AppCard
+import com.blockveil.expense.tracker.ui.components.BackHeader
 import com.blockveil.expense.tracker.ui.components.ConfirmDialog
-import com.blockveil.expense.tracker.ui.components.PageHeader
 import com.blockveil.expense.tracker.ui.components.SectionHeader
 import com.blockveil.expense.tracker.ui.more.icon
 import com.blockveil.expense.tracker.ui.more.label
@@ -38,23 +42,25 @@ import com.blockveil.expense.tracker.util.CurrencyDisplay
 import com.blockveil.expense.tracker.util.formatMoney
 
 /**
- * Lists every account, savings and loan together, with a delete button. Deleting one is safe:
- * every transaction/subscription/transfer pointing at it falls back to "Deleted account"
- * (SET_NULL foreign keys) instead of failing or taking the rest of that history with it.
- * Renaming/editing isn't here yet, just view + delete, for now.
+ * Lists every account, savings and loan together. Tapping the kebab menu on a row offers
+ * Hide/Unhide (a hidden account still counts toward net worth but disappears from every list
+ * and transaction account picker until unhidden) and Delete Account (blocked for a loan that
+ * isn't fully repaid yet, see onDeleteAccount's error return).
  */
 @Composable
 fun AccountManagementScreen(
     accounts: List<AccountEntity>,
     currency: CurrencyDisplay,
-    onDelete: (AccountEntity) -> Unit,
+    onDelete: (AccountEntity) -> String?,
+    onSetHidden: (AccountEntity, Boolean) -> Unit,
+    onDeleteBlocked: (String) -> Unit,
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     var pendingDelete by remember { mutableStateOf<AccountEntity?>(null) }
 
     Column(modifier = modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
-        PageHeader(title = "Account Management", onClose = onBack)
+        BackHeader(title = "Account Management", onBack = onBack)
 
         Column(modifier = Modifier.padding(horizontal = 20.dp)) {
             SectionHeader(title = "Accounts", modifier = Modifier.padding(top = 4.dp))
@@ -72,6 +78,7 @@ fun AccountManagementScreen(
                             account = account,
                             currency = currency,
                             onDeleteRequest = { pendingDelete = account },
+                            onSetHidden = { hidden -> onSetHidden(account, hidden) },
                         )
                     }
                 }
@@ -85,7 +92,8 @@ fun AccountManagementScreen(
             title = "Delete account?",
             message = "\"${toDelete.name}\" will be removed. Past transactions on it will show as \"Deleted account\" instead of disappearing.",
             onConfirm = {
-                onDelete(toDelete)
+                val error = onDelete(toDelete)
+                if (error != null) onDeleteBlocked(error)
                 pendingDelete = null
             },
             onCancel = { pendingDelete = null },
@@ -98,12 +106,15 @@ private fun AccountManagementRow(
     account: AccountEntity,
     currency: CurrencyDisplay,
     onDeleteRequest: () -> Unit,
+    onSetHidden: (Boolean) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    var menuOpen by remember { mutableStateOf(false) }
+
     val subtitle = if (account.category == AccountCategory.SAVINGS) {
-        "${account.type?.label ?: "Savings"} · ${formatMoney(account.balance ?: 0.0, currency)}"
+        "${account.type?.label ?: "Savings"} \u00b7 ${formatMoney(account.balance ?: 0.0, currency)}"
     } else {
-        "Loan · ${formatMoney(account.repaid ?: 0.0, currency)} of ${formatMoney(account.principal ?: 0.0, currency)} repaid"
+        "Loan \u00b7 ${formatMoney(account.repaid ?: 0.0, currency)} of ${formatMoney(account.principal ?: 0.0, currency)} repaid"
     }
     val icon = if (account.category == AccountCategory.SAVINGS) account.type?.icon ?: Icons.Filled.CreditCard else Icons.Filled.CreditCard
 
@@ -125,21 +136,49 @@ private fun AccountManagementRow(
                     modifier = Modifier.size(16.dp),
                 )
                 Column {
-                    Text(
-                        text = account.name,
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.Medium,
-                        color = MaterialTheme.colorScheme.onSurface,
-                    )
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = account.name,
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = MaterialTheme.colorScheme.onSurface,
+                        )
+                        if (account.isHidden) {
+                            Icon(
+                                imageVector = Icons.Filled.VisibilityOff,
+                                contentDescription = "Hidden",
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.padding(start = 6.dp).size(12.dp),
+                            )
+                        }
+                    }
                     Text(text = subtitle, fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
-            Icon(
-                imageVector = Icons.Filled.Delete,
-                contentDescription = "Delete ${account.name}",
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.size(15.dp).clickable { onDeleteRequest() },
-            )
+            Box {
+                Icon(
+                    imageVector = Icons.Filled.MoreVert,
+                    contentDescription = "Options for ${account.name}",
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(18.dp).clickable { menuOpen = true },
+                )
+                DropdownMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {
+                    DropdownMenuItem(
+                        text = { Text(if (account.isHidden) "Unhide" else "Hide") },
+                        onClick = {
+                            onSetHidden(!account.isHidden)
+                            menuOpen = false
+                        },
+                    )
+                    DropdownMenuItem(
+                        text = { Text("Delete Account") },
+                        onClick = {
+                            onDeleteRequest()
+                            menuOpen = false
+                        },
+                    )
+                }
+            }
         }
     }
 }
