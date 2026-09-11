@@ -8,7 +8,7 @@ import com.blockveil.expense.tracker.util.CurrencyDisplay
 data class HomeUiState(
     val isLoading: Boolean = true,
     val filterLabel: String = "",
-    val isMonthFilter: Boolean = true,
+    val showPeriodArrows: Boolean = true,
     val expenseTotal: Double = 0.0,
     val incomeTotal: Double = 0.0,
     val budget: Double = 0.0,
