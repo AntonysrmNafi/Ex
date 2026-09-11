@@ -5,6 +5,8 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
+import androidx.room.migration.Migration
+import androidx.sqlite.db.SupportSQLiteDatabase
 import com.blockveil.expense.tracker.data.local.dao.AccountDao
 import com.blockveil.expense.tracker.data.local.dao.CategoryBudgetDao
 import com.blockveil.expense.tracker.data.local.dao.CustomCategoryDao
@@ -20,6 +22,13 @@ import com.blockveil.expense.tracker.data.local.entity.SubscriptionEntity
 import com.blockveil.expense.tracker.data.local.entity.TransactionEntity
 import com.blockveil.expense.tracker.data.local.entity.TransferEntity
 
+/** Adds AccountEntity.isHidden (account hide/unhide), defaulting every existing row to visible. */
+private val MIGRATION_1_2 = object : Migration(1, 2) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("ALTER TABLE accounts ADD COLUMN isHidden INTEGER NOT NULL DEFAULT 0")
+    }
+}
+
 @Database(
     entities = [
         AccountEntity::class,
@@ -30,7 +39,7 @@ import com.blockveil.expense.tracker.data.local.entity.TransferEntity
         CategoryBudgetEntity::class,
         CustomCategoryEntity::class,
     ],
-    version = 1,
+    version = 2,
     exportSchema = true,
 )
 @TypeConverters(Converters::class)
@@ -53,7 +62,7 @@ abstract class AppDatabase : RoomDatabase() {
                     context.applicationContext,
                     AppDatabase::class.java,
                     "expense_tracker.db",
-                ).build().also { instance = it }
+                ).addMigrations(MIGRATION_1_2).build().also { instance = it }
             }
     }
 }
