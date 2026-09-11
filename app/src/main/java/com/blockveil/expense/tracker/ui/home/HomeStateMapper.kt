@@ -45,6 +45,7 @@ fun buildHomeUiState(
     val incomeTotal = filtered.filter { it.type == TransactionType.INCOME }.sumOf { it.amount }
 
     val isMonthFilter = filter == DateFilter.Month
+    val showPeriodArrows = filter !is DateFilter.All
     val effectiveBudget = computeEffectiveBudget(settings.budget, settings.rollingEnabled, currentMonth, sources.transactions)
 
     val accountUiModels = sources.accounts.map { account -> account.toStripUiModel() }
@@ -56,7 +57,7 @@ fun buildHomeUiState(
     return HomeUiState(
         isLoading = false,
         filterLabel = filter.label(currentMonth),
-        isMonthFilter = isMonthFilter,
+        showPeriodArrows = showPeriodArrows,
         expenseTotal = expenseTotal,
         incomeTotal = incomeTotal,
         budget = effectiveBudget,
