@@ -38,7 +38,7 @@ class HomeViewModel(
 
     private val sources = combine(
         transactionRepository.observeAll(),
-        accountRepository.observeAll(),
+        accountRepository.observeVisible(),
         customCategoryRepository.observeExpenseCategories(),
         customCategoryRepository.observeIncomeCategories(),
     ) { transactions, accounts, customExpense, customIncome ->
@@ -61,11 +61,11 @@ class HomeViewModel(
     )
 
     fun onPrevMonth() {
-        sharedMonthState.prevMonth()
+        if (_dateFilter.value == DateFilter.Month) sharedMonthState.prevMonth() else _dateFilter.value = _dateFilter.value.stepped(forward = false)
     }
 
     fun onNextMonth() {
-        sharedMonthState.nextMonth()
+        if (_dateFilter.value == DateFilter.Month) sharedMonthState.nextMonth() else _dateFilter.value = _dateFilter.value.stepped(forward = true)
     }
 
     /** Applied when the user taps "Select" in [DateFilterSheet]. */
