@@ -22,4 +22,7 @@ data class AccountEntity(
     val loanAmount: Double? = null,
     val repaid: Double? = null,
     val active: Boolean = true,
+    /** Hidden accounts stay counted in net worth but drop out of every list and account
+     *  picker, and can't be posted new transactions against, until unhidden. */
+    val isHidden: Boolean = false,
 )
