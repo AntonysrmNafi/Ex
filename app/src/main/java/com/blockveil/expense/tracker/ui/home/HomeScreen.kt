@@ -69,7 +69,7 @@ import kotlin.math.roundToInt
 @Composable
 fun HomeScreen(
     filterLabel: String,
-    isMonthFilter: Boolean,
+    showPeriodArrows: Boolean,
     onPrevMonth: () -> Unit,
     onNextMonth: () -> Unit,
     onOpenDateFilter: () -> Unit,
@@ -103,7 +103,7 @@ fun HomeScreen(
                 item {
                     DateFilterRow(
                         filterLabel = filterLabel,
-                        isMonthFilter = isMonthFilter,
+                        showPeriodArrows = showPeriodArrows,
                         onPrevMonth = onPrevMonth,
                         onNextMonth = onNextMonth,
                         onOpenDateFilter = onOpenDateFilter,
@@ -245,7 +245,7 @@ fun HomeScreen(
 @Composable
 private fun DateFilterRow(
     filterLabel: String,
-    isMonthFilter: Boolean,
+    showPeriodArrows: Boolean,
     onPrevMonth: () -> Unit,
     onNextMonth: () -> Unit,
     onOpenDateFilter: () -> Unit,
@@ -270,7 +270,7 @@ private fun DateFilterRow(
             style = MaterialTheme.typography.titleSmall,
             color = MaterialTheme.colorScheme.onSurface,
         )
-        if (isMonthFilter) {
+        if (showPeriodArrows) {
             Row {
                 IconButton(onClick = onPrevMonth, modifier = Modifier.size(28.dp)) {
                     Icon(Icons.Filled.ChevronLeft, contentDescription = "Previous month", tint = MaterialTheme.colorScheme.onSurface)
@@ -458,7 +458,7 @@ private fun HomeScreenPreview() {
         CompositionLocalProvider(LocalAppFeedback provides rememberAppFeedbackState()) {
             HomeScreen(
                 filterLabel = "July 2026",
-                isMonthFilter = true,
+                showPeriodArrows = true,
                 onPrevMonth = {},
                 onNextMonth = {},
                 onOpenDateFilter = {},
