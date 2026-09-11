@@ -93,7 +93,10 @@ fun TransactionFormScreen(
     LaunchedEffect(viewModel.isSaved, viewModel.isDeleted) {
         if (viewModel.isSaved || viewModel.isDeleted) {
             viewModel.feedbackMessage?.let { feedback.showToast(it) }
-            if (viewModel.triggersMoneyBurst) feedback.triggerMoneyBurst()
+            if (viewModel.triggersMoneyBurst) {
+                feedback.triggerMoneyBurst()
+                feedback.playTransactionSound()
+            }
             onClose()
         }
     }
