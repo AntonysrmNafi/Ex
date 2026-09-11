@@ -57,7 +57,7 @@ fun buildMoreUiState(
     return MoreUiState(
         isLoading = false,
         netWorth = netWorth,
-        accounts = accounts,
+        accounts = accounts.filterNot { it.isHidden },
         subscriptions = subscriptions,
         subTotal = subTotal,
         flagged = flagged,
