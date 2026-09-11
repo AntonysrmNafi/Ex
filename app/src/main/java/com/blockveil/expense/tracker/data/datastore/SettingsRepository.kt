@@ -9,6 +9,7 @@ import androidx.datastore.preferences.preferencesDataStore
 import com.blockveil.expense.tracker.data.model.CurrencyFormat
 import com.blockveil.expense.tracker.data.model.CurrencyPosition
 import com.blockveil.expense.tracker.data.model.ThemeMode
+import com.blockveil.expense.tracker.util.detectDefaultCurrencyCountry
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
@@ -19,7 +20,7 @@ data class AppSettings(
     val budget: Double = 0.0,
     val rollingEnabled: Boolean = false,
     val themeMode: ThemeMode = ThemeMode.SYSTEM,
-    val currencyCountry: String = "Bangladesh",
+    val currencyCountry: String = detectDefaultCurrencyCountry(),
     val currencyPosition: CurrencyPosition = CurrencyPosition.PREFIX,
     val currencyFormat: CurrencyFormat = CurrencyFormat.GROUPED,
 )
@@ -40,7 +41,7 @@ class SettingsRepository(private val context: Context) {
             budget = prefs[Keys.BUDGET] ?: 0.0,
             rollingEnabled = prefs[Keys.ROLLING_ENABLED] ?: false,
             themeMode = prefs[Keys.THEME_MODE]?.toEnumOrNull<ThemeMode>() ?: ThemeMode.SYSTEM,
-            currencyCountry = prefs[Keys.CURRENCY_COUNTRY] ?: "Bangladesh",
+            currencyCountry = prefs[Keys.CURRENCY_COUNTRY] ?: detectDefaultCurrencyCountry(),
             currencyPosition = prefs[Keys.CURRENCY_POSITION]?.toEnumOrNull<CurrencyPosition>()
                 ?: CurrencyPosition.PREFIX,
             currencyFormat = prefs[Keys.CURRENCY_FORMAT]?.toEnumOrNull<CurrencyFormat>()
