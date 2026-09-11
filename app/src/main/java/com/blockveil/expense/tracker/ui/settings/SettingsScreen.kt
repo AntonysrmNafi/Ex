@@ -27,7 +27,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.blockveil.expense.tracker.data.model.CurrencyPosition
 import com.blockveil.expense.tracker.data.model.ThemeMode
-import com.blockveil.expense.tracker.ui.components.PageHeader
+import com.blockveil.expense.tracker.ui.components.BackHeader
 import com.blockveil.expense.tracker.ui.components.SectionHeader
 import com.blockveil.expense.tracker.ui.theme.BrandPrimary
 import com.blockveil.expense.tracker.util.CurrencyCatalog
@@ -60,7 +60,7 @@ fun SettingsScreen(
             .fillMaxSize()
             .verticalScroll(rememberScrollState()),
     ) {
-        PageHeader(title = "Settings", onClose = onClose)
+        BackHeader(title = "Settings", onBack = onClose)
 
         Column(modifier = Modifier.padding(horizontal = 20.dp)) {
             SectionHeader(title = "Theme", modifier = Modifier.padding(top = 4.dp))
