@@ -19,6 +19,8 @@ import com.blockveil.expense.tracker.data.repository.CustomCategoryRepository
 import com.blockveil.expense.tracker.data.repository.TransactionRepository
 import com.blockveil.expense.tracker.data.repository.TransferRepository
 import com.blockveil.expense.tracker.di.AppContainer
+import com.blockveil.expense.tracker.notifications.scheduleLoanHide
+import com.blockveil.expense.tracker.notifications.showLoanRepaidNotification
 import com.blockveil.expense.tracker.ui.theme.CustomCategoryPalette
 import com.blockveil.expense.tracker.util.resolveCurrencyDisplay
 import kotlinx.coroutines.flow.SharingStarted
@@ -35,10 +37,11 @@ class TransactionFormViewModel(
     private val settingsRepository: SettingsRepository,
     private val transferRepository: TransferRepository,
     private val existingId: Long?,
+    private val appContext: android.content.Context,
 ) : ViewModel() {
 
     val sources: StateFlow<TransactionFormSources> = combine(
-        accountRepository.observeAll(),
+        accountRepository.observeVisible(),
         customCategoryRepository.observeExpenseCategories(),
         customCategoryRepository.observeIncomeCategories(),
         settingsRepository.settings,
@@ -249,6 +252,10 @@ class TransactionFormViewModel(
             feedbackMessage = if (willSettle) "Loan fully repaid and settled" else "Loan repayment recorded"
             triggersMoneyBurst = true
             isSaved = true
+            if (willSettle && loan != null) {
+                showLoanRepaidNotification(appContext, loan.id, loan.name)
+                scheduleLoanHide(appContext, loan.id)
+            }
         }
     }
 
@@ -278,6 +285,7 @@ class TransactionFormViewModel(
                     settingsRepository = container.settingsRepository,
                     transferRepository = container.transferRepository,
                     existingId = existingId,
+                    appContext = container.appContext,
                 )
             }
         }
