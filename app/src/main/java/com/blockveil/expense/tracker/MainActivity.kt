@@ -1,9 +1,13 @@
 package com.blockveil.expense.tracker
 
+import android.Manifest
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
@@ -13,6 +17,7 @@ import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -95,7 +100,7 @@ class MainActivity : ComponentActivity() {
 private sealed class PushedScreen {
     data object None : PushedScreen()
     data object Settings : PushedScreen()
-    data class TransactionForm(val existingId: Long?) : PushedScreen()
+    data class TransactionForm(val existingId: Long?, val instanceKey: Long = System.nanoTime()) : PushedScreen()
     data class AccountHistory(val accountId: Long) : PushedScreen()
     data class CategoryHistory(val category: String, val isIncome: Boolean) : PushedScreen()
 }
@@ -116,6 +121,17 @@ private fun AppRoot() {
     }
 
     val openTransaction = { id: Long? -> pushedScreen = PushedScreen.TransactionForm(existingId = id) }
+
+    // Goal-reached and loan-repaid alerts need this on API 33+ (it's a normal, non-dangerous
+    // permission before that). Requested once up front rather than at the moment a goal/loan
+    // notification would fire, since that moment is deep inside a ViewModel with no Activity
+    // to launch a permission prompt from.
+    val notificationPermissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) {}
+    LaunchedEffect(Unit) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+        }
+    }
 
     CompositionLocalProvider(LocalAppFeedback provides feedback) {
         Box(modifier = Modifier.fillMaxSize()) {
@@ -151,6 +167,7 @@ private fun AppRoot() {
             when (val screen = pushedScreen) {
                 is PushedScreen.TransactionForm -> TransactionFormScreen(
                     existingId = screen.existingId,
+                    instanceKey = screen.instanceKey,
                     onClose = { pushedScreen = PushedScreen.None },
                 )
                 is PushedScreen.AccountHistory -> AccountHistoryRoute(
