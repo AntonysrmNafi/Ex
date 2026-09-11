@@ -10,6 +10,7 @@ import com.blockveil.expense.tracker.data.datastore.AppSettings
 import com.blockveil.expense.tracker.data.datastore.SettingsRepository
 import com.blockveil.expense.tracker.data.local.entity.AccountEntity
 import com.blockveil.expense.tracker.data.local.entity.CustomCategoryEntity
+import com.blockveil.expense.tracker.data.model.AccountCategory
 import com.blockveil.expense.tracker.data.model.CurrencyFormat
 import com.blockveil.expense.tracker.data.model.CurrencyPosition
 import com.blockveil.expense.tracker.data.model.ThemeMode
@@ -65,9 +66,20 @@ class SettingsViewModel(
      * (transactions, subscriptions, transfers) is declared ON DELETE SET NULL, so this never
      * fails or cascades away unrelated history, those rows just fall back to showing
      * "Deleted account" (see accountName()) instead of the account's old name.
+     *
+     * Returns an error message if a loan account isn't fully repaid yet (a loan's `active`
+     * flag already tracks exactly that, see TransferRepository.addRepayment), or null on success.
      */
-    fun onDeleteAccount(account: AccountEntity) {
+    fun onDeleteAccount(account: AccountEntity): String? {
+        if (account.category == AccountCategory.LOAN && account.active) {
+            return "Repay this loan in full before deleting it."
+        }
         viewModelScope.launch { accountRepository.delete(account) }
+        return null
+    }
+
+    fun onSetAccountHidden(account: AccountEntity, hidden: Boolean) {
+        viewModelScope.launch { accountRepository.setHidden(account, hidden) }
     }
 
     suspend fun exportBackup(): String = backupManager.exportCsv()
