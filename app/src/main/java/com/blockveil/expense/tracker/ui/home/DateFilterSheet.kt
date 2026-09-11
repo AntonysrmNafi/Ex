@@ -45,10 +45,10 @@ import java.time.YearMonth
 private enum class FilterOption { TODAY, WEEK, MONTH, YEAR, ALL, CUSTOM }
 
 private fun DateFilter.toOption(): FilterOption = when (this) {
-    DateFilter.Today -> FilterOption.TODAY
-    DateFilter.Week -> FilterOption.WEEK
+    is DateFilter.Today -> FilterOption.TODAY
+    is DateFilter.Week -> FilterOption.WEEK
     DateFilter.Month -> FilterOption.MONTH
-    DateFilter.Year -> FilterOption.YEAR
+    is DateFilter.Year -> FilterOption.YEAR
     DateFilter.All -> FilterOption.ALL
     is DateFilter.Custom -> FilterOption.CUSTOM
 }
@@ -177,10 +177,10 @@ fun DateFilterSheet(
                 Button(
                     onClick = {
                         val resolved = when (selectedOption) {
-                            FilterOption.TODAY -> DateFilter.Today
-                            FilterOption.WEEK -> DateFilter.Week
+                            FilterOption.TODAY -> DateFilter.Today()
+                            FilterOption.WEEK -> DateFilter.Week()
                             FilterOption.MONTH -> DateFilter.Month
-                            FilterOption.YEAR -> DateFilter.Year
+                            FilterOption.YEAR -> DateFilter.Year()
                             FilterOption.ALL -> DateFilter.All
                             FilterOption.CUSTOM -> DateFilter.Custom(customFrom, customTo)
                         }
