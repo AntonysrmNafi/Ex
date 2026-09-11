@@ -52,7 +52,7 @@ fun DateFilter.dateRangeOrNull(currentMonth: YearMonth, today: LocalDate): Pair<
     DateFilter.Month -> currentMonth.atDay(1) to currentMonth.atEndOfMonth()
     is DateFilter.Today -> today.plusDays(dayOffset).let { it to it }
     is DateFilter.Week -> weekStart(today.plusWeeks(weekOffset)).let { it to it.plusDays(6) }
-    is DateFilter.Year -> (today.year + yearOffset).let { LocalDate.of(it, 1, 1) to LocalDate.of(it, 12, 31) }
+    is DateFilter.Year -> (today.year + yearOffset).toInt().let { LocalDate.of(it, 1, 1) to LocalDate.of(it, 12, 31) }
     DateFilter.All -> null
     is DateFilter.Custom -> from to to
 }
@@ -72,7 +72,7 @@ fun DateFilter.stepped(forward: Boolean): DateFilter {
         is DateFilter.Custom -> {
             val spanDays = java.time.temporal.ChronoUnit.DAYS.between(from, to) + 1
             val shift = spanDays * sign
-            Custom(from = from.plusDays(shift), to = to.plusDays(shift))
+            DateFilter.Custom(from = from.plusDays(shift), to = to.plusDays(shift))
         }
         DateFilter.Month, DateFilter.All -> this
     }
