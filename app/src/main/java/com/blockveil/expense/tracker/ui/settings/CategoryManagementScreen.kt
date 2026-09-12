@@ -32,12 +32,15 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.blockveil.expense.tracker.data.local.entity.CustomCategoryEntity
 import com.blockveil.expense.tracker.ui.components.AppCard
-import com.blockveil.expense.tracker.ui.components.ConfirmDialog
 import com.blockveil.expense.tracker.ui.components.BackHeader
+import com.blockveil.expense.tracker.ui.components.ConfirmDialog
 import com.blockveil.expense.tracker.ui.components.SectionHeader
 
 /**
- * Lists every user-created category (expense and income, separately) with a delete button.
+ * Lists every user-created expense category with a delete button. Income categories live in
+ * their own Source Management screen instead (see [SourceManagementScreen]), since income
+ * entries are conceptually "sources" (salary, freelance, gift) rather than categories.
+ *
  * Deleting one is non-destructive to past transactions: [com.blockveil.expense.tracker.util.categoryColor]
  * already falls back to a neutral color for a category name that no longer has a custom
  * entry, so old entries keep their category name, they just lose the custom color.
@@ -46,7 +49,6 @@ import com.blockveil.expense.tracker.ui.components.SectionHeader
 @Composable
 fun CategoryManagementScreen(
     expenseCategories: List<CustomCategoryEntity>,
-    incomeCategories: List<CustomCategoryEntity>,
     onDelete: (CustomCategoryEntity) -> Unit,
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
@@ -58,17 +60,9 @@ fun CategoryManagementScreen(
 
         Column(modifier = Modifier.padding(horizontal = 20.dp)) {
             SectionHeader(title = "Expense categories", modifier = Modifier.padding(top = 4.dp))
-            CategoryList(
-                categories = expenseCategories,
+            CustomEntryList(
+                entries = expenseCategories,
                 emptyText = "No custom expense categories yet.",
-                onDeleteRequest = { pendingDelete = it },
-                modifier = Modifier.padding(bottom = 20.dp),
-            )
-
-            SectionHeader(title = "Income categories")
-            CategoryList(
-                categories = incomeCategories,
-                emptyText = "No custom income categories yet.",
                 onDeleteRequest = { pendingDelete = it },
                 modifier = Modifier.padding(bottom = 24.dp),
             )
@@ -89,19 +83,20 @@ fun CategoryManagementScreen(
     }
 }
 
+/** Shared by [CategoryManagementScreen] (expense) and [SourceManagementScreen] (income): a color dot, name, and delete button per custom entry. */
 @Composable
-private fun CategoryList(
-    categories: List<CustomCategoryEntity>,
+internal fun CustomEntryList(
+    entries: List<CustomCategoryEntity>,
     emptyText: String,
     onDeleteRequest: (CustomCategoryEntity) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        if (categories.isEmpty()) {
+        if (entries.isEmpty()) {
             Text(text = emptyText, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
             return@Column
         }
-        categories.forEach { category ->
+        entries.forEach { entry ->
             AppCard(modifier = Modifier.fillMaxWidth()) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -117,10 +112,10 @@ private fun CategoryList(
                             modifier = Modifier
                                 .size(14.dp)
                                 .clip(CircleShape)
-                                .background(Color(category.color)),
+                                .background(Color(entry.color)),
                         )
                         Text(
-                            text = category.name,
+                            text = entry.name,
                             fontSize = 12.sp,
                             fontWeight = FontWeight.Medium,
                             color = MaterialTheme.colorScheme.onSurface,
@@ -128,9 +123,9 @@ private fun CategoryList(
                     }
                     Icon(
                         imageVector = Icons.Filled.Delete,
-                        contentDescription = "Delete ${category.name}",
+                        contentDescription = "Delete ${entry.name}",
                         tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.size(15.dp).clickable { onDeleteRequest(category) },
+                        modifier = Modifier.size(15.dp).clickable { onDeleteRequest(entry) },
                     )
                 }
             }
