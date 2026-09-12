@@ -26,6 +26,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.blockveil.expense.tracker.ui.theme.BrandDanger
 import com.blockveil.expense.tracker.ui.theme.faded
 import com.blockveil.expense.tracker.util.CurrencyDisplay
 import com.blockveil.expense.tracker.util.formatMoney
@@ -102,7 +103,7 @@ fun TransactionRow(
                 text = (if (isIncome) "+" else "-") + formatMoney(amount, currency),
                 style = MaterialTheme.typography.titleSmall,
                 fontWeight = FontWeight.Bold,
-                color = if (isIncome) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
+                color = if (isIncome) MaterialTheme.colorScheme.primary else BrandDanger,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
