@@ -329,7 +329,7 @@ private fun BudgetSummaryCard(
                 text = formatMoney(expenseTotal, currency),
                 fontSize = 26.sp,
                 fontWeight = FontWeight.ExtraBold,
-                color = MaterialTheme.colorScheme.onSurface,
+                color = BrandDanger,
                 modifier = Modifier.padding(top = 2.dp),
             )
 
@@ -377,7 +377,7 @@ private fun BudgetSummaryCard(
                 BudgetStat(
                     label = "Spent",
                     value = formatMoney(expenseTotal, currency),
-                    valueColor = MaterialTheme.colorScheme.onSurface,
+                    valueColor = BrandDanger,
                     modifier = Modifier.weight(1f),
                 )
                 BudgetStat(
