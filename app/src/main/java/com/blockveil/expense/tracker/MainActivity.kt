@@ -50,17 +50,33 @@ import com.blockveil.expense.tracker.ui.settings.SettingsRoute
 import com.blockveil.expense.tracker.ui.theme.DarkBackground
 import com.blockveil.expense.tracker.ui.theme.ExpenseTrackerTheme
 import com.blockveil.expense.tracker.ui.theme.LightBackground
+import com.blockveil.expense.tracker.ui.transaction.TransactionDetailRoute
 import com.blockveil.expense.tracker.ui.transaction.TransactionFormScreen
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
-        installSplashScreen()
+        val splashScreen = installSplashScreen()
         super.onCreate(savedInstanceState)
+
+        // Settings load from DataStore asynchronously, so the first Compose frame would
+        // otherwise have to guess a theme (falling back to the system's) before the user's
+        // actual saved choice arrives a moment later, causing a visible dark-to-light (or
+        // light-to-dark) flash on launch. Holding the splash screen up until that first real
+        // value arrives means Compose only ever draws once it knows the correct theme.
+        var settingsLoaded = false
+        splashScreen.setKeepOnScreenCondition { !settingsLoaded }
+
         setContent {
             val app = LocalContext.current.applicationContext as ExpenseTrackerApp
             val settings by app.container.settingsRepository.settings.collectAsState(initial = null)
 
-            // Null on the very first frame before DataStore emits; system default avoids a flash of the wrong theme.
+            LaunchedEffect(settings) {
+                if (settings != null) settingsLoaded = true
+            }
+
+            // Only null for the single frame or two before the LaunchedEffect above has a
+            // chance to run; the splash screen is still covering that, so the system fallback
+            // here is never actually seen, just a safe non-null value for `darkTheme` below.
             val darkTheme = when (settings?.themeMode) {
                 ThemeMode.LIGHT -> false
                 ThemeMode.DARK -> true
@@ -101,6 +117,7 @@ private sealed class PushedScreen {
     data object None : PushedScreen()
     data object Settings : PushedScreen()
     data class TransactionForm(val existingId: Long?, val instanceKey: Long = System.nanoTime()) : PushedScreen()
+    data class TransactionDetail(val id: Long) : PushedScreen()
     data class AccountHistory(val accountId: Long) : PushedScreen()
     data class CategoryHistory(val category: String, val isIncome: Boolean) : PushedScreen()
 }
@@ -139,13 +156,13 @@ private fun AppRoot() {
                 Box(modifier = Modifier.fillMaxSize().padding(innerPadding)) {
                     when (selectedTab) {
                         AppTab.HOME -> HomeRoute(
-                            onTxnClick = { id -> openTransaction(id) },
+                            onTxnClick = { id -> pushedScreen = PushedScreen.TransactionDetail(id) },
                             onAccountClick = { id -> pushedScreen = PushedScreen.AccountHistory(accountId = id) },
                             onSeeAllHistory = { selectedTab = AppTab.HISTORY },
                             onAdd = { openTransaction(null) },
                         )
                         AppTab.HISTORY -> HistoryRoute(
-                            onTxnClick = { id -> openTransaction(id) },
+                            onTxnClick = { id -> pushedScreen = PushedScreen.TransactionDetail(id) },
                         )
                         AppTab.ANALYTICS -> AnalyticsRoute()
                         AppTab.MORE -> MoreRoute(
@@ -170,16 +187,21 @@ private fun AppRoot() {
                     instanceKey = screen.instanceKey,
                     onClose = { pushedScreen = PushedScreen.None },
                 )
+                is PushedScreen.TransactionDetail -> TransactionDetailRoute(
+                    transactionId = screen.id,
+                    onEdit = { id -> openTransaction(id) },
+                    onBack = { pushedScreen = PushedScreen.None },
+                )
                 is PushedScreen.AccountHistory -> AccountHistoryRoute(
                     accountId = screen.accountId,
                     onBack = { pushedScreen = PushedScreen.None },
-                    onTxnClick = { id -> openTransaction(id) },
+                    onTxnClick = { id -> pushedScreen = PushedScreen.TransactionDetail(id) },
                 )
                 is PushedScreen.CategoryHistory -> CategoryHistoryRoute(
                     category = screen.category,
                     isIncome = screen.isIncome,
                     onBack = { pushedScreen = PushedScreen.None },
-                    onTxnClick = { id -> openTransaction(id) },
+                    onTxnClick = { id -> pushedScreen = PushedScreen.TransactionDetail(id) },
                 )
                 PushedScreen.Settings -> SettingsRoute(onClose = { pushedScreen = PushedScreen.None })
                 PushedScreen.None -> Unit
