@@ -34,6 +34,7 @@ private sealed class SettingsPage {
     data object Currency : SettingsPage()
     data object CurrencyPicker : SettingsPage()
     data object CategoryManagement : SettingsPage()
+    data object SourceManagement : SettingsPage()
     data object AccountManagement : SettingsPage()
     data class Info(val key: InfoPageKey) : SettingsPage()
 }
@@ -109,6 +110,7 @@ fun SettingsRoute(onClose: () -> Unit) {
                 currencyPosition = settings.currencyPosition,
                 onOpenCurrency = { page = SettingsPage.Currency },
                 onOpenCategoryManagement = { page = SettingsPage.CategoryManagement },
+                onOpenSourceManagement = { page = SettingsPage.SourceManagement },
                 onOpenAccountManagement = { page = SettingsPage.AccountManagement },
                 onBackup = {
                     val fileName = "blockveil-backup-${LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE)}.csv"
@@ -141,7 +143,11 @@ fun SettingsRoute(onClose: () -> Unit) {
             }
             SettingsPage.CategoryManagement -> CategoryManagementScreen(
                 expenseCategories = expenseCategories,
-                incomeCategories = incomeCategories,
+                onDelete = viewModel::onDeleteCategory,
+                onBack = { page = SettingsPage.Main },
+            )
+            SettingsPage.SourceManagement -> SourceManagementScreen(
+                incomeSources = incomeCategories,
                 onDelete = viewModel::onDeleteCategory,
                 onBack = { page = SettingsPage.Main },
             )
