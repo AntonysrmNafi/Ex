@@ -1,37 +1,28 @@
-package com.blockveil.expense.tracker.data.local.dao
+package com.blockveil.expense.tracker.data.repository
 
-import androidx.room.Dao
-import androidx.room.Delete
-import androidx.room.Insert
-import androidx.room.Query
-import androidx.room.Update
+import com.blockveil.expense.tracker.data.local.AppDatabase
 import com.blockveil.expense.tracker.data.local.entity.CustomCategoryEntity
 import kotlinx.coroutines.flow.Flow
 
-@Dao
-interface CustomCategoryDao {
+class CustomCategoryRepository(db: AppDatabase) {
 
-    @Query("SELECT * FROM custom_categories WHERE isIncome = 0 ORDER BY id ASC")
-    fun observeExpenseCategories(): Flow<List<CustomCategoryEntity>>
+    private val dao = db.customCategoryDao()
 
-    @Query("SELECT * FROM custom_categories WHERE isIncome = 1 ORDER BY id ASC")
-    fun observeIncomeCategories(): Flow<List<CustomCategoryEntity>>
+    fun observeExpenseCategories(): Flow<List<CustomCategoryEntity>> = dao.observeExpenseCategories()
 
-    @Query("SELECT * FROM custom_categories WHERE isIncome = 0 AND isHidden = 0 ORDER BY id ASC")
-    fun observeVisibleExpenseCategories(): Flow<List<CustomCategoryEntity>>
+    fun observeIncomeCategories(): Flow<List<CustomCategoryEntity>> = dao.observeIncomeCategories()
 
-    @Query("SELECT * FROM custom_categories WHERE isIncome = 1 AND isHidden = 0 ORDER BY id ASC")
-    fun observeVisibleIncomeCategories(): Flow<List<CustomCategoryEntity>>
+    /** Excludes hidden entries, for the category/source picker when adding a new transaction. */
+    fun observeVisibleExpenseCategories(): Flow<List<CustomCategoryEntity>> = dao.observeVisibleExpenseCategories()
 
-    @Insert
-    suspend fun insert(category: CustomCategoryEntity): Long
+    fun observeVisibleIncomeCategories(): Flow<List<CustomCategoryEntity>> = dao.observeVisibleIncomeCategories()
 
-    @Update
-    suspend fun update(category: CustomCategoryEntity)
+    suspend fun insert(name: String, color: Int, isIncome: Boolean): Long =
+        dao.insert(CustomCategoryEntity(name = name, color = color, isIncome = isIncome))
 
-    @Delete
-    suspend fun delete(category: CustomCategoryEntity)
+    suspend fun setHidden(category: CustomCategoryEntity, hidden: Boolean) = dao.update(category.copy(isHidden = hidden))
 
-    @Query("DELETE FROM custom_categories")
-    suspend fun deleteAll()
+    suspend fun delete(category: CustomCategoryEntity) = dao.delete(category)
+
+    suspend fun deleteAll() = dao.deleteAll()
 }
