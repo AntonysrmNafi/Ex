@@ -12,37 +12,34 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.blockveil.expense.tracker.data.local.entity.CustomCategoryEntity
 import com.blockveil.expense.tracker.ui.components.BackHeader
 import com.blockveil.expense.tracker.ui.components.ConfirmDialog
 import com.blockveil.expense.tracker.ui.components.SectionHeader
 
 /**
- * Lists every user-created income source with a delete button. Kept separate from
- * [CategoryManagementScreen] (expense categories) since income entries are conceptually
- * "sources" (salary, freelance, gift) rather than categories, even though under the hood
- * they're the same [CustomCategoryEntity] table with isIncome = true.
- *
- * Deleting one is non-destructive to past transactions, same as deleting a custom expense
- * category: the source name stays on old transactions, they just lose the custom color.
+ * Lists every income source, built-in and custom together, each with a Hide/Unhide and
+ * Delete menu, same behavior as [CategoryManagementScreen] (expense categories): hiding or
+ * deleting only affects the picker for new transactions, past transactions are unaffected.
  */
 @Composable
 fun SourceManagementScreen(
-    incomeSources: List<CustomCategoryEntity>,
-    onDelete: (CustomCategoryEntity) -> Unit,
+    sources: List<ManagedCategoryUiModel>,
+    onSetHidden: (ManagedCategoryUiModel, Boolean) -> Unit,
+    onDelete: (ManagedCategoryUiModel) -> Unit,
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    var pendingDelete by remember { mutableStateOf<CustomCategoryEntity?>(null) }
+    var pendingDelete by remember { mutableStateOf<ManagedCategoryUiModel?>(null) }
 
     Column(modifier = modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
         BackHeader(title = "Source Management", onBack = onBack)
 
         Column(modifier = Modifier.padding(horizontal = 20.dp)) {
             SectionHeader(title = "Income sources", modifier = Modifier.padding(top = 4.dp))
-            CustomEntryList(
-                entries = incomeSources,
-                emptyText = "No custom income sources yet.",
+            ManagedCategoryList(
+                entries = sources,
+                emptyText = "No income sources.",
+                onSetHidden = onSetHidden,
                 onDeleteRequest = { pendingDelete = it },
                 modifier = Modifier.padding(bottom = 24.dp),
             )
