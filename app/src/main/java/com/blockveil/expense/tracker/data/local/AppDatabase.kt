@@ -29,6 +29,13 @@ private val MIGRATION_1_2 = object : Migration(1, 2) {
     }
 }
 
+/** Adds CustomCategoryEntity.isHidden (category/source hide/unhide), same reasoning as above. */
+private val MIGRATION_2_3 = object : Migration(2, 3) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("ALTER TABLE custom_categories ADD COLUMN isHidden INTEGER NOT NULL DEFAULT 0")
+    }
+}
+
 @Database(
     entities = [
         AccountEntity::class,
@@ -39,7 +46,7 @@ private val MIGRATION_1_2 = object : Migration(1, 2) {
         CategoryBudgetEntity::class,
         CustomCategoryEntity::class,
     ],
-    version = 2,
+    version = 3,
     exportSchema = true,
 )
 @TypeConverters(Converters::class)
@@ -62,7 +69,7 @@ abstract class AppDatabase : RoomDatabase() {
                     context.applicationContext,
                     AppDatabase::class.java,
                     "expense_tracker.db",
-                ).addMigrations(MIGRATION_1_2).build().also { instance = it }
+                ).addMigrations(MIGRATION_1_2, MIGRATION_2_3).build().also { instance = it }
             }
     }
 }
