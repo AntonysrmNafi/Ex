@@ -17,11 +17,15 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.blockveil.expense.tracker.ExpenseTrackerApp
 import com.blockveil.expense.tracker.ui.components.ConfirmDialog
 import com.blockveil.expense.tracker.ui.components.LocalAppFeedback
+import com.blockveil.expense.tracker.util.EXPENSE_CATEGORIES
+import com.blockveil.expense.tracker.util.INCOME_CATEGORIES
+import com.blockveil.expense.tracker.util.categoryColor
 import com.blockveil.expense.tracker.util.resolveCurrencyDisplay
 import kotlinx.coroutines.launch
 import java.io.BufferedReader
@@ -141,16 +145,72 @@ fun SettingsRoute(onClose: () -> Unit) {
             is SettingsPage.Info -> INFO_PAGES[current.key]?.let { content ->
                 InfoScreen(content = content, onBack = { page = SettingsPage.Main })
             }
-            SettingsPage.CategoryManagement -> CategoryManagementScreen(
-                expenseCategories = expenseCategories,
-                onDelete = viewModel::onDeleteCategory,
-                onBack = { page = SettingsPage.Main },
-            )
-            SettingsPage.SourceManagement -> SourceManagementScreen(
-                incomeSources = incomeCategories,
-                onDelete = viewModel::onDeleteCategory,
-                onBack = { page = SettingsPage.Main },
-            )
+            SettingsPage.CategoryManagement -> {
+                val hiddenFixed = settings.hiddenFixedExpenseCategories
+                val deletedFixed = settings.deletedFixedExpenseCategories
+                val fixedModels = EXPENSE_CATEGORIES.filterNot { it in deletedFixed }.map { name ->
+                    ManagedCategoryUiModel(
+                        name = name,
+                        color = categoryColor(false, name, expenseCategories, incomeCategories),
+                        isHidden = name in hiddenFixed,
+                        isBuiltIn = true,
+                    )
+                }
+                val customModels = expenseCategories.map { entity ->
+                    ManagedCategoryUiModel(name = entity.name, color = Color(entity.color), isHidden = entity.isHidden, isBuiltIn = false)
+                }
+                CategoryManagementScreen(
+                    categories = fixedModels + customModels,
+                    onSetHidden = { model, hidden ->
+                        if (model.isBuiltIn) {
+                            viewModel.onSetFixedCategoryHidden(isIncome = false, name = model.name, hidden = hidden)
+                        } else {
+                            expenseCategories.firstOrNull { it.name == model.name }?.let { viewModel.onSetCategoryHidden(it, hidden) }
+                        }
+                    },
+                    onDelete = { model ->
+                        if (model.isBuiltIn) {
+                            viewModel.onDeleteFixedCategory(isIncome = false, name = model.name)
+                        } else {
+                            expenseCategories.firstOrNull { it.name == model.name }?.let { viewModel.onDeleteCategory(it) }
+                        }
+                    },
+                    onBack = { page = SettingsPage.Main },
+                )
+            }
+            SettingsPage.SourceManagement -> {
+                val hiddenFixed = settings.hiddenFixedIncomeCategories
+                val deletedFixed = settings.deletedFixedIncomeCategories
+                val fixedModels = INCOME_CATEGORIES.filterNot { it in deletedFixed }.map { name ->
+                    ManagedCategoryUiModel(
+                        name = name,
+                        color = categoryColor(true, name, expenseCategories, incomeCategories),
+                        isHidden = name in hiddenFixed,
+                        isBuiltIn = true,
+                    )
+                }
+                val customModels = incomeCategories.map { entity ->
+                    ManagedCategoryUiModel(name = entity.name, color = Color(entity.color), isHidden = entity.isHidden, isBuiltIn = false)
+                }
+                SourceManagementScreen(
+                    sources = fixedModels + customModels,
+                    onSetHidden = { model, hidden ->
+                        if (model.isBuiltIn) {
+                            viewModel.onSetFixedCategoryHidden(isIncome = true, name = model.name, hidden = hidden)
+                        } else {
+                            incomeCategories.firstOrNull { it.name == model.name }?.let { viewModel.onSetCategoryHidden(it, hidden) }
+                        }
+                    },
+                    onDelete = { model ->
+                        if (model.isBuiltIn) {
+                            viewModel.onDeleteFixedCategory(isIncome = true, name = model.name)
+                        } else {
+                            incomeCategories.firstOrNull { it.name == model.name }?.let { viewModel.onDeleteCategory(it) }
+                        }
+                    },
+                    onBack = { page = SettingsPage.Main },
+                )
+            }
             SettingsPage.AccountManagement -> AccountManagementScreen(
                 accounts = accounts,
                 currency = resolveCurrencyDisplay(settings),
