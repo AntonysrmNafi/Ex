@@ -73,7 +73,7 @@ fun AnalyticsScreen(
 
             item {
                 CategoryDonutCard(
-                    title = "Income by category",
+                    title = "Income by source",
                     icon = Icons.Filled.ArrowCircleDown,
                     totals = incomeTotals,
                     isIncome = true,
