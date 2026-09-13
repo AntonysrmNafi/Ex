@@ -46,7 +46,16 @@ class TransactionFormViewModel(
         customCategoryRepository.observeIncomeCategories(),
         settingsRepository.settings,
     ) { accounts, customExpense, customIncome, settings ->
-        TransactionFormSources(accounts, customExpense, customIncome, resolveCurrencyDisplay(settings))
+        TransactionFormSources(
+            accounts = accounts,
+            customExpenseCategories = customExpense,
+            customIncomeCategories = customIncome,
+            currency = resolveCurrencyDisplay(settings),
+            hiddenFixedExpenseCategories = settings.hiddenFixedExpenseCategories,
+            hiddenFixedIncomeCategories = settings.hiddenFixedIncomeCategories,
+            deletedFixedExpenseCategories = settings.deletedFixedExpenseCategories,
+            deletedFixedIncomeCategories = settings.deletedFixedIncomeCategories,
+        )
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5_000),
