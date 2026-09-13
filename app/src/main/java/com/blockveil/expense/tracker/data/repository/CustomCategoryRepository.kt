@@ -1,21 +1,37 @@
-package com.blockveil.expense.tracker.data.repository
+package com.blockveil.expense.tracker.data.local.dao
 
-import com.blockveil.expense.tracker.data.local.AppDatabase
+import androidx.room.Dao
+import androidx.room.Delete
+import androidx.room.Insert
+import androidx.room.Query
+import androidx.room.Update
 import com.blockveil.expense.tracker.data.local.entity.CustomCategoryEntity
 import kotlinx.coroutines.flow.Flow
 
-class CustomCategoryRepository(db: AppDatabase) {
+@Dao
+interface CustomCategoryDao {
 
-    private val dao = db.customCategoryDao()
+    @Query("SELECT * FROM custom_categories WHERE isIncome = 0 ORDER BY id ASC")
+    fun observeExpenseCategories(): Flow<List<CustomCategoryEntity>>
 
-    fun observeExpenseCategories(): Flow<List<CustomCategoryEntity>> = dao.observeExpenseCategories()
+    @Query("SELECT * FROM custom_categories WHERE isIncome = 1 ORDER BY id ASC")
+    fun observeIncomeCategories(): Flow<List<CustomCategoryEntity>>
 
-    fun observeIncomeCategories(): Flow<List<CustomCategoryEntity>> = dao.observeIncomeCategories()
+    @Query("SELECT * FROM custom_categories WHERE isIncome = 0 AND isHidden = 0 ORDER BY id ASC")
+    fun observeVisibleExpenseCategories(): Flow<List<CustomCategoryEntity>>
 
-    suspend fun insert(name: String, color: Int, isIncome: Boolean): Long =
-        dao.insert(CustomCategoryEntity(name = name, color = color, isIncome = isIncome))
+    @Query("SELECT * FROM custom_categories WHERE isIncome = 1 AND isHidden = 0 ORDER BY id ASC")
+    fun observeVisibleIncomeCategories(): Flow<List<CustomCategoryEntity>>
 
-    suspend fun delete(category: CustomCategoryEntity) = dao.delete(category)
+    @Insert
+    suspend fun insert(category: CustomCategoryEntity): Long
 
-    suspend fun deleteAll() = dao.deleteAll()
+    @Update
+    suspend fun update(category: CustomCategoryEntity)
+
+    @Delete
+    suspend fun delete(category: CustomCategoryEntity)
+
+    @Query("DELETE FROM custom_categories")
+    suspend fun deleteAll()
 }
