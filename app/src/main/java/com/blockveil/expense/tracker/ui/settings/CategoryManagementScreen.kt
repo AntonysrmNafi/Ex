@@ -14,7 +14,10 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -30,39 +33,48 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.blockveil.expense.tracker.data.local.entity.CustomCategoryEntity
 import com.blockveil.expense.tracker.ui.components.AppCard
 import com.blockveil.expense.tracker.ui.components.BackHeader
 import com.blockveil.expense.tracker.ui.components.ConfirmDialog
 import com.blockveil.expense.tracker.ui.components.SectionHeader
 
+/** One row in Category/Source Management: a built-in category/source, or a custom one. Unifies both under one UI since they're managed identically except for where hide/delete write to. */
+data class ManagedCategoryUiModel(
+    val name: String,
+    val color: Color,
+    val isHidden: Boolean,
+    val isBuiltIn: Boolean,
+)
+
 /**
- * Lists every user-created expense category with a delete button. Income categories live in
- * their own Source Management screen instead (see [SourceManagementScreen]), since income
- * entries are conceptually "sources" (salary, freelance, gift) rather than categories.
+ * Lists every expense category, built-in and custom together, each with a Hide/Unhide and
+ * Delete menu. Income sources live in their own Source Management screen instead (see
+ * [SourceManagementScreen]).
  *
- * Deleting one is non-destructive to past transactions: [com.blockveil.expense.tracker.util.categoryColor]
- * already falls back to a neutral color for a category name that no longer has a custom
- * entry, so old entries keep their category name, they just lose the custom color.
- * Renaming/editing isn't here yet, just view + delete, for now.
+ * Hiding or deleting one only affects the picker for new transactions; past transactions
+ * that already used it are completely unaffected, since categoryColor()/categoryIcon()
+ * resolve a category's color/icon by name regardless of its hidden/deleted state. Deleting a
+ * built-in category has no way back (no Unhide offered afterward), unlike hiding it.
  */
 @Composable
 fun CategoryManagementScreen(
-    expenseCategories: List<CustomCategoryEntity>,
-    onDelete: (CustomCategoryEntity) -> Unit,
+    categories: List<ManagedCategoryUiModel>,
+    onSetHidden: (ManagedCategoryUiModel, Boolean) -> Unit,
+    onDelete: (ManagedCategoryUiModel) -> Unit,
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    var pendingDelete by remember { mutableStateOf<CustomCategoryEntity?>(null) }
+    var pendingDelete by remember { mutableStateOf<ManagedCategoryUiModel?>(null) }
 
     Column(modifier = modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
         BackHeader(title = "Category Management", onBack = onBack)
 
         Column(modifier = Modifier.padding(horizontal = 20.dp)) {
             SectionHeader(title = "Expense categories", modifier = Modifier.padding(top = 4.dp))
-            CustomEntryList(
-                entries = expenseCategories,
-                emptyText = "No custom expense categories yet.",
+            ManagedCategoryList(
+                entries = categories,
+                emptyText = "No expense categories.",
+                onSetHidden = onSetHidden,
                 onDeleteRequest = { pendingDelete = it },
                 modifier = Modifier.padding(bottom = 24.dp),
             )
@@ -83,12 +95,13 @@ fun CategoryManagementScreen(
     }
 }
 
-/** Shared by [CategoryManagementScreen] (expense) and [SourceManagementScreen] (income): a color dot, name, and delete button per custom entry. */
+/** Shared by [CategoryManagementScreen] and [SourceManagementScreen]. */
 @Composable
-internal fun CustomEntryList(
-    entries: List<CustomCategoryEntity>,
+internal fun ManagedCategoryList(
+    entries: List<ManagedCategoryUiModel>,
     emptyText: String,
-    onDeleteRequest: (CustomCategoryEntity) -> Unit,
+    onSetHidden: (ManagedCategoryUiModel, Boolean) -> Unit,
+    onDeleteRequest: (ManagedCategoryUiModel) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -97,35 +110,71 @@ internal fun CustomEntryList(
             return@Column
         }
         entries.forEach { entry ->
-            AppCard(modifier = Modifier.fillMaxWidth()) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Row(
-                        modifier = Modifier.weight(1f),
-                        horizontalArrangement = Arrangement.spacedBy(10.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .size(14.dp)
-                                .clip(CircleShape)
-                                .background(Color(entry.color)),
-                        )
-                        Text(
-                            text = entry.name,
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.Medium,
-                            color = MaterialTheme.colorScheme.onSurface,
-                        )
-                    }
+            ManagedCategoryRow(entry = entry, onSetHidden = { hidden -> onSetHidden(entry, hidden) }, onDeleteRequest = { onDeleteRequest(entry) })
+        }
+    }
+}
+
+@Composable
+private fun ManagedCategoryRow(
+    entry: ManagedCategoryUiModel,
+    onSetHidden: (Boolean) -> Unit,
+    onDeleteRequest: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    var menuOpen by remember { mutableStateOf(false) }
+
+    AppCard(modifier = modifier.fillMaxWidth()) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Row(
+                modifier = Modifier.weight(1f),
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(14.dp)
+                        .clip(CircleShape)
+                        .background(entry.color),
+                )
+                Text(text = entry.name, fontSize = 12.sp, fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onSurface)
+                if (!entry.isBuiltIn) {
+                    Text(text = "Custom", fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+                if (entry.isHidden) {
                     Icon(
-                        imageVector = Icons.Filled.Delete,
-                        contentDescription = "Delete ${entry.name}",
+                        imageVector = Icons.Filled.VisibilityOff,
+                        contentDescription = "Hidden",
                         tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.size(15.dp).clickable { onDeleteRequest(entry) },
+                        modifier = Modifier.size(12.dp),
+                    )
+                }
+            }
+            Box {
+                Icon(
+                    imageVector = Icons.Filled.MoreVert,
+                    contentDescription = "Options for ${entry.name}",
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(18.dp).clickable { menuOpen = true },
+                )
+                DropdownMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {
+                    DropdownMenuItem(
+                        text = { Text(if (entry.isHidden) "Unhide" else "Hide") },
+                        onClick = {
+                            onSetHidden(!entry.isHidden)
+                            menuOpen = false
+                        },
+                    )
+                    DropdownMenuItem(
+                        text = { Text("Delete") },
+                        onClick = {
+                            onDeleteRequest()
+                            menuOpen = false
+                        },
                     )
                 }
             }
