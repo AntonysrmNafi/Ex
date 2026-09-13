@@ -18,4 +18,7 @@ data class CustomCategoryEntity(
     val name: String,
     val color: Int,
     val isIncome: Boolean,
+    /** Hidden categories drop out of the picker for new transactions but keep showing on
+     *  past transactions that already used them, same as a fixed category being hidden. */
+    val isHidden: Boolean = false,
 )
