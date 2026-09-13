@@ -61,6 +61,21 @@ class SettingsViewModel(
         viewModelScope.launch { customCategoryRepository.delete(category) }
     }
 
+    fun onSetCategoryHidden(category: CustomCategoryEntity, hidden: Boolean) {
+        viewModelScope.launch { customCategoryRepository.setHidden(category, hidden) }
+    }
+
+    fun onSetFixedCategoryHidden(isIncome: Boolean, name: String, hidden: Boolean) {
+        viewModelScope.launch { settingsRepository.setFixedCategoryHidden(isIncome, name, hidden) }
+    }
+
+    /** Deleting a built-in category/source is permanent (no unhide), matching a fixed
+     *  category behaving the same as a deleted custom one: gone from Category/Source
+     *  Management and the picker for new transactions, unaffected on past transactions. */
+    fun onDeleteFixedCategory(isIncome: Boolean, name: String) {
+        viewModelScope.launch { settingsRepository.deleteFixedCategory(isIncome, name) }
+    }
+
     /**
      * Deleting an account is safe by design: every foreign key that points at an account
      * (transactions, subscriptions, transfers) is declared ON DELETE SET NULL, so this never
