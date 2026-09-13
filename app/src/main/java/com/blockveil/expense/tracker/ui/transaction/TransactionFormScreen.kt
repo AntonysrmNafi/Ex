@@ -136,7 +136,7 @@ fun TransactionFormScreen(
                     } else {
                         CategoryPicker(
                             label = if (isIncome) "Source" else "Category",
-                            categories = categoryListFor(fields.type, sources),
+                            categories = categoryListFor(fields.type, sources, currentCategory = fields.category),
                             selected = category,
                             onSelect = viewModel::onCategoryChange,
                             onAddCustomCategory = viewModel::onAddCustomCategory,
