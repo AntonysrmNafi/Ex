@@ -15,6 +15,10 @@ data class TransactionFormSources(
     val customExpenseCategories: List<CustomCategoryEntity>,
     val customIncomeCategories: List<CustomCategoryEntity>,
     val currency: CurrencyDisplay,
+    val hiddenFixedExpenseCategories: Set<String> = emptySet(),
+    val hiddenFixedIncomeCategories: Set<String> = emptySet(),
+    val deletedFixedExpenseCategories: Set<String> = emptySet(),
+    val deletedFixedIncomeCategories: Set<String> = emptySet(),
 )
 
 /**
@@ -38,17 +42,30 @@ data class TransactionFormFields(
     val loanId: Long? = null,
 )
 
-/** The category list for [type]: fixed categories first, then this session's custom ones. */
-fun categoryListFor(type: TransactionFormType, sources: TransactionFormSources): List<String> =
-    if (type == TransactionFormType.INCOME) {
-        INCOME_CATEGORIES + sources.customIncomeCategories.map { it.name }
+/**
+ * The category list for [type], for the "pick or add new" picker: fixed categories (minus
+ * any the user has hidden or deleted) first, then this session's custom ones (minus any
+ * hidden). [currentCategory] (the transaction's existing category when editing) is always
+ * included even if it's since been hidden/deleted, so opening an existing transaction for
+ * edit never silently reassigns it to a different category just because its own was removed
+ * from the picker.
+ */
+fun categoryListFor(type: TransactionFormType, sources: TransactionFormSources, currentCategory: String = ""): List<String> {
+    val list = if (type == TransactionFormType.INCOME) {
+        val excluded = sources.hiddenFixedIncomeCategories + sources.deletedFixedIncomeCategories
+        INCOME_CATEGORIES.filterNot { it in excluded } +
+            sources.customIncomeCategories.filterNot { it.isHidden }.map { it.name }
     } else {
-        EXPENSE_CATEGORIES + sources.customExpenseCategories.map { it.name }
+        val excluded = sources.hiddenFixedExpenseCategories + sources.deletedFixedExpenseCategories
+        EXPENSE_CATEGORIES.filterNot { it in excluded } +
+            sources.customExpenseCategories.filterNot { it.isHidden }.map { it.name }
     }
+    return if (currentCategory.isNotEmpty() && currentCategory !in list) list + currentCategory else list
+}
 
 /** The category to actually show as selected: the user's pick if still valid, else the first option. */
 fun effectiveCategory(fields: TransactionFormFields, sources: TransactionFormSources): String {
-    val list = categoryListFor(fields.type, sources)
+    val list = categoryListFor(fields.type, sources, currentCategory = fields.category)
     return fields.category.takeIf { it.isNotEmpty() && list.contains(it) } ?: list.firstOrNull().orEmpty()
 }
 
