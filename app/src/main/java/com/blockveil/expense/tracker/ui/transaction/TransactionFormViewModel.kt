@@ -160,20 +160,6 @@ class TransactionFormViewModel(
         fields = fields.copy(errorMessage = message)
     }
 
-    /** Adds a custom category if its name isn't already taken (case-insensitive), then selects it. Matches handleAddCustomCategory. */
-    fun onAddCustomCategory(name: String) {
-        val isIncome = fields.type == TransactionFormType.INCOME
-        val currentSources = sources.value
-        val existingList = if (isIncome) currentSources.customIncomeCategories else currentSources.customExpenseCategories
-        if (existingList.none { it.name.equals(name, ignoreCase = true) }) {
-            val color = CustomCategoryPalette[existingList.size % CustomCategoryPalette.size].toArgb()
-            viewModelScope.launch {
-                customCategoryRepository.insert(name = name, color = color, isIncome = isIncome)
-            }
-        }
-        fields = fields.copy(category = name)
-    }
-
     fun onSave() {
         when (fields.type) {
             TransactionFormType.INCOME, TransactionFormType.EXPENSE -> saveIncomeOrExpense()
