@@ -12,10 +12,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
@@ -37,6 +40,7 @@ import com.blockveil.expense.tracker.ui.components.AppCard
 import com.blockveil.expense.tracker.ui.components.BackHeader
 import com.blockveil.expense.tracker.ui.components.ConfirmDialog
 import com.blockveil.expense.tracker.ui.components.SectionHeader
+import com.blockveil.expense.tracker.ui.theme.BrandPrimary
 
 /** One row in Category/Source Management: a built-in category/source, or a custom one. Unifies both under one UI since they're managed identically except for where hide/delete write to. */
 data class ManagedCategoryUiModel(
@@ -61,6 +65,7 @@ fun CategoryManagementScreen(
     categories: List<ManagedCategoryUiModel>,
     onSetHidden: (ManagedCategoryUiModel, Boolean) -> Unit,
     onDelete: (ManagedCategoryUiModel) -> Unit,
+    onAddCustom: () -> Unit,
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -70,7 +75,16 @@ fun CategoryManagementScreen(
         BackHeader(title = "Category Management", onBack = onBack)
 
         Column(modifier = Modifier.padding(horizontal = 20.dp)) {
-            SectionHeader(title = "Expense categories", modifier = Modifier.padding(top = 4.dp))
+            Button(
+                onClick = onAddCustom,
+                modifier = Modifier.fillMaxWidth().padding(top = 12.dp, bottom = 16.dp),
+                shape = RoundedCornerShape(12.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = BrandPrimary),
+            ) {
+                Text(text = "Add Custom Category", fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+            }
+
+            SectionHeader(title = "Expense categories")
             ManagedCategoryList(
                 entries = categories,
                 emptyText = "No expense categories.",
