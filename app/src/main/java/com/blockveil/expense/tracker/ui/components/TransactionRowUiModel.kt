@@ -46,7 +46,7 @@ fun TransactionEntity.toRowUiModel(
         id = id,
         category = category,
         isIncome = isIncome,
-        icon = categoryIcon(isIncome, category),
+        icon = categoryIcon(isIncome, category, customExpenseCategories, customIncomeCategories),
         iconTint = categoryColor(isIncome, category, customExpenseCategories, customIncomeCategories),
         note = note,
         metaLine = metaLine,
