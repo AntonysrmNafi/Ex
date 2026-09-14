@@ -36,6 +36,13 @@ private val MIGRATION_2_3 = object : Migration(2, 3) {
     }
 }
 
+/** Adds CustomCategoryEntity.icon (icon choice for a custom category/source), defaulting existing rows to the generic tag icon. */
+private val MIGRATION_3_4 = object : Migration(3, 4) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("ALTER TABLE custom_categories ADD COLUMN icon TEXT NOT NULL DEFAULT 'Sell'")
+    }
+}
+
 @Database(
     entities = [
         AccountEntity::class,
@@ -46,7 +53,7 @@ private val MIGRATION_2_3 = object : Migration(2, 3) {
         CategoryBudgetEntity::class,
         CustomCategoryEntity::class,
     ],
-    version = 3,
+    version = 4,
     exportSchema = true,
 )
 @TypeConverters(Converters::class)
@@ -69,7 +76,7 @@ abstract class AppDatabase : RoomDatabase() {
                     context.applicationContext,
                     AppDatabase::class.java,
                     "expense_tracker.db",
-                ).addMigrations(MIGRATION_1_2, MIGRATION_2_3).build().also { instance = it }
+                ).addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4).build().also { instance = it }
             }
     }
 }
