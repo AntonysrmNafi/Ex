@@ -61,6 +61,10 @@ class SettingsViewModel(
         viewModelScope.launch { customCategoryRepository.delete(category) }
     }
 
+    fun onCreateCategory(name: String, color: Int, isIncome: Boolean, icon: String) {
+        viewModelScope.launch { customCategoryRepository.insert(name = name, color = color, isIncome = isIncome, icon = icon) }
+    }
+
     fun onSetCategoryHidden(category: CustomCategoryEntity, hidden: Boolean) {
         viewModelScope.launch { customCategoryRepository.setHidden(category, hidden) }
     }
