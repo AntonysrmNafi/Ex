@@ -54,7 +54,7 @@ private fun TransactionFormPiecesPreview() {
                     categories = EXPENSE_CATEGORIES,
                     selected = category,
                     onSelect = { category = it },
-                    onAddCustomCategory = {},
+                    onNavigateToCustom = {},
                 )
                 AccountPicker(
                     accounts = sampleAccounts,
