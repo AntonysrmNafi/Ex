@@ -45,6 +45,7 @@ import com.blockveil.expense.tracker.ui.home.HomeRoute
 import com.blockveil.expense.tracker.ui.more.MoreRoute
 import com.blockveil.expense.tracker.ui.navigation.AppScaffold
 import com.blockveil.expense.tracker.ui.navigation.AppTab
+import com.blockveil.expense.tracker.ui.settings.SettingsEntryPoint
 import com.blockveil.expense.tracker.ui.settings.SettingsGearButton
 import com.blockveil.expense.tracker.ui.settings.SettingsRoute
 import com.blockveil.expense.tracker.ui.theme.DarkBackground
@@ -115,7 +116,7 @@ class MainActivity : ComponentActivity() {
  */
 private sealed class PushedScreen {
     data object None : PushedScreen()
-    data object Settings : PushedScreen()
+    data class Settings(val entryPoint: SettingsEntryPoint = SettingsEntryPoint.MAIN) : PushedScreen()
     data class TransactionForm(val existingId: Long?, val instanceKey: Long = System.nanoTime()) : PushedScreen()
     data class TransactionDetail(val id: Long) : PushedScreen()
     data class AccountHistory(val accountId: Long) : PushedScreen()
@@ -174,7 +175,7 @@ private fun AppRoot() {
 
             // Floating above every tab, matches the source design's fixed-position gear button.
             SettingsGearButton(
-                onClick = { pushedScreen = PushedScreen.Settings },
+                onClick = { pushedScreen = PushedScreen.Settings() },
                 modifier = Modifier
                     .align(Alignment.TopEnd)
                     .windowInsetsPadding(WindowInsets.statusBars)
@@ -186,6 +187,11 @@ private fun AppRoot() {
                     existingId = screen.existingId,
                     instanceKey = screen.instanceKey,
                     onClose = { pushedScreen = PushedScreen.None },
+                    onNavigateToCategoryManagement = { isIncome ->
+                        pushedScreen = PushedScreen.Settings(
+                            if (isIncome) SettingsEntryPoint.SOURCE_MANAGEMENT else SettingsEntryPoint.CATEGORY_MANAGEMENT,
+                        )
+                    },
                 )
                 is PushedScreen.TransactionDetail -> TransactionDetailRoute(
                     transactionId = screen.id,
@@ -203,7 +209,10 @@ private fun AppRoot() {
                     onBack = { pushedScreen = PushedScreen.None },
                     onTxnClick = { id -> pushedScreen = PushedScreen.TransactionDetail(id) },
                 )
-                PushedScreen.Settings -> SettingsRoute(onClose = { pushedScreen = PushedScreen.None })
+                is PushedScreen.Settings -> SettingsRoute(
+                    entryPoint = screen.entryPoint,
+                    onClose = { pushedScreen = PushedScreen.None },
+                )
                 PushedScreen.None -> Unit
             }
 
