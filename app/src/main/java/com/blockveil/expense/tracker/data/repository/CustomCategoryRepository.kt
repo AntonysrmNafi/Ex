@@ -17,8 +17,8 @@ class CustomCategoryRepository(db: AppDatabase) {
 
     fun observeVisibleIncomeCategories(): Flow<List<CustomCategoryEntity>> = dao.observeVisibleIncomeCategories()
 
-    suspend fun insert(name: String, color: Int, isIncome: Boolean): Long =
-        dao.insert(CustomCategoryEntity(name = name, color = color, isIncome = isIncome))
+    suspend fun insert(name: String, color: Int, isIncome: Boolean, icon: String = "Sell"): Long =
+        dao.insert(CustomCategoryEntity(name = name, color = color, isIncome = isIncome, icon = icon))
 
     suspend fun setHidden(category: CustomCategoryEntity, hidden: Boolean) = dao.update(category.copy(isHidden = hidden))
 
