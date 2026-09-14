@@ -67,6 +67,7 @@ import java.time.LocalDate
 fun TransactionFormScreen(
     existingId: Long?,
     onClose: () -> Unit,
+    onNavigateToCategoryManagement: (isIncome: Boolean) -> Unit,
     instanceKey: Long = System.nanoTime(),
 ) {
     val app = LocalContext.current.applicationContext as ExpenseTrackerApp
@@ -139,7 +140,7 @@ fun TransactionFormScreen(
                             categories = categoryListFor(fields.type, sources, currentCategory = fields.category),
                             selected = category,
                             onSelect = viewModel::onCategoryChange,
-                            onAddCustomCategory = viewModel::onAddCustomCategory,
+                            onNavigateToCustom = { onNavigateToCategoryManagement(isIncome) },
                             modifier = Modifier.padding(bottom = 16.dp),
                         )
 
