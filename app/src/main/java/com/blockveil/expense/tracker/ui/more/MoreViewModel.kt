@@ -61,6 +61,7 @@ class MoreViewModel(
         if (name.isBlank()) return "Enter a name"
         if (loanAmount == null || loanAmount <= 0) return "Enter a valid loan amount"
         if (settlementAmount == null || settlementAmount <= 0) return "Enter a valid settlement amount"
+        if (loanAmount <= settlementAmount) return "Loan amount must be more than the settlement amount"
         if (depositAccountId == null) return "Choose an account to deposit into"
 
         viewModelScope.launch {
