@@ -33,14 +33,30 @@ import java.io.InputStreamReader
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
+/** Where SettingsRoute should land when it's pushed, e.g. jumping straight to Category
+ *  Management from the transaction form's "Custom" tap instead of Settings' own front page. */
+enum class SettingsEntryPoint {
+    MAIN,
+    CATEGORY_MANAGEMENT,
+    SOURCE_MANAGEMENT,
+}
+
 private sealed class SettingsPage {
     data object Main : SettingsPage()
     data object Currency : SettingsPage()
     data object CurrencyPicker : SettingsPage()
     data object CategoryManagement : SettingsPage()
     data object SourceManagement : SettingsPage()
+    data object AddCustomCategory : SettingsPage()
+    data object AddCustomSource : SettingsPage()
     data object AccountManagement : SettingsPage()
     data class Info(val key: InfoPageKey) : SettingsPage()
+}
+
+private fun SettingsEntryPoint.toInitialPage(): SettingsPage = when (this) {
+    SettingsEntryPoint.MAIN -> SettingsPage.Main
+    SettingsEntryPoint.CATEGORY_MANAGEMENT -> SettingsPage.CategoryManagement
+    SettingsEntryPoint.SOURCE_MANAGEMENT -> SettingsPage.SourceManagement
 }
 
 /**
@@ -54,23 +70,29 @@ private sealed class SettingsPage {
  * this screen closing immediately after, since a local SnackbarHost would vanish with it.
  */
 @Composable
-fun SettingsRoute(onClose: () -> Unit) {
+fun SettingsRoute(onClose: () -> Unit, entryPoint: SettingsEntryPoint = SettingsEntryPoint.MAIN) {
     val app = LocalContext.current.applicationContext as ExpenseTrackerApp
     val viewModel: SettingsViewModel = viewModel(factory = SettingsViewModel.factory(app.container))
     val settings by viewModel.settings.collectAsState()
     val feedback = LocalAppFeedback.current
 
-    var page by remember { mutableStateOf<SettingsPage>(SettingsPage.Main) }
+    var page by remember { mutableStateOf<SettingsPage>(entryPoint.toInitialPage()) }
     var showClearConfirm by remember { mutableStateOf(false) }
     val expenseCategories by viewModel.expenseCategories.collectAsState()
     val incomeCategories by viewModel.incomeCategories.collectAsState()
     val accounts by viewModel.accounts.collectAsState()
 
     // Mirrors the BackHandler in MainActivity.AppRoot one level down: back inside Settings
-    // steps back through its own page stack first (CurrencyPicker -> Currency -> Main, or any
-    // other sub-page -> Main) before ever reaching the outer handler that closes Settings itself.
+    // steps back through its own page stack first (CurrencyPicker -> Currency, either
+    // AddCustom page -> its own Management page, anything else -> Main) before ever reaching
+    // the outer handler that closes Settings itself.
     BackHandler(enabled = page != SettingsPage.Main) {
-        page = if (page == SettingsPage.CurrencyPicker) SettingsPage.Currency else SettingsPage.Main
+        page = when (page) {
+            SettingsPage.CurrencyPicker -> SettingsPage.Currency
+            SettingsPage.AddCustomCategory -> SettingsPage.CategoryManagement
+            SettingsPage.AddCustomSource -> SettingsPage.SourceManagement
+            else -> SettingsPage.Main
+        }
     }
 
     val context = LocalContext.current
@@ -175,6 +197,7 @@ fun SettingsRoute(onClose: () -> Unit) {
                             expenseCategories.firstOrNull { it.name == model.name }?.let { viewModel.onDeleteCategory(it) }
                         }
                     },
+                    onAddCustom = { page = SettingsPage.AddCustomCategory },
                     onBack = { page = SettingsPage.Main },
                 )
             }
@@ -208,9 +231,28 @@ fun SettingsRoute(onClose: () -> Unit) {
                             incomeCategories.firstOrNull { it.name == model.name }?.let { viewModel.onDeleteCategory(it) }
                         }
                     },
+                    onAddCustom = { page = SettingsPage.AddCustomSource },
                     onBack = { page = SettingsPage.Main },
                 )
             }
+            SettingsPage.AddCustomCategory -> AddCustomCategoryScreen(
+                isIncome = false,
+                onCreate = { name, color, icon ->
+                    viewModel.onCreateCategory(name, color, isIncome = false, icon = icon)
+                    feedback.showToast("Category added")
+                    page = SettingsPage.CategoryManagement
+                },
+                onBack = { page = SettingsPage.CategoryManagement },
+            )
+            SettingsPage.AddCustomSource -> AddCustomCategoryScreen(
+                isIncome = true,
+                onCreate = { name, color, icon ->
+                    viewModel.onCreateCategory(name, color, isIncome = true, icon = icon)
+                    feedback.showToast("Source added")
+                    page = SettingsPage.SourceManagement
+                },
+                onBack = { page = SettingsPage.SourceManagement },
+            )
             SettingsPage.AccountManagement -> AccountManagementScreen(
                 accounts = accounts,
                 currency = resolveCurrencyDisplay(settings),
