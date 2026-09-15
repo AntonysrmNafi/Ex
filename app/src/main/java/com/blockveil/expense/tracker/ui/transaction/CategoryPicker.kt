@@ -30,6 +30,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.blockveil.expense.tracker.ui.components.dashedBorder
+import com.blockveil.expense.tracker.ui.theme.BrandPrimary
 import com.blockveil.expense.tracker.ui.theme.ExpenseTrackerTheme
 
 /**
