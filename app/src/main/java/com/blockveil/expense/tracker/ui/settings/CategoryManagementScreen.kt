@@ -46,6 +46,7 @@ import com.blockveil.expense.tracker.ui.theme.BrandPrimary
 data class ManagedCategoryUiModel(
     val name: String,
     val color: Color,
+    val icon: androidx.compose.ui.graphics.vector.ImageVector,
     val isHidden: Boolean,
     val isBuiltIn: Boolean,
 )
@@ -149,13 +150,13 @@ private fun ManagedCategoryRow(
                 horizontalArrangement = Arrangement.spacedBy(10.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Box(
-                    modifier = Modifier
-                        .size(14.dp)
-                        .clip(CircleShape)
-                        .background(entry.color),
+                Icon(
+                    imageVector = entry.icon,
+                    contentDescription = null,
+                    tint = entry.color,
+                    modifier = Modifier.size(18.dp),
                 )
-                Text(text = entry.name, fontSize = 12.sp, fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onSurface)
+                Text(text = entry.name, fontSize = 12.sp, fontWeight = FontWeight.Medium, color = entry.color)
                 if (!entry.isBuiltIn) {
                     Text(text = "Custom", fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
