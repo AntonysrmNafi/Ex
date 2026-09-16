@@ -25,6 +25,7 @@ import com.blockveil.expense.tracker.ui.components.ConfirmDialog
 import com.blockveil.expense.tracker.ui.components.LocalAppFeedback
 import com.blockveil.expense.tracker.util.EXPENSE_CATEGORIES
 import com.blockveil.expense.tracker.util.INCOME_CATEGORIES
+import com.blockveil.expense.tracker.ui.components.categoryIcon
 import com.blockveil.expense.tracker.util.categoryColor
 import com.blockveil.expense.tracker.util.resolveCurrencyDisplay
 import kotlinx.coroutines.launch
@@ -174,12 +175,19 @@ fun SettingsRoute(onClose: () -> Unit, entryPoint: SettingsEntryPoint = Settings
                     ManagedCategoryUiModel(
                         name = name,
                         color = categoryColor(false, name, expenseCategories, incomeCategories),
+                        icon = categoryIcon(false, name, expenseCategories, incomeCategories),
                         isHidden = name in hiddenFixed,
                         isBuiltIn = true,
                     )
                 }
                 val customModels = expenseCategories.map { entity ->
-                    ManagedCategoryUiModel(name = entity.name, color = Color(entity.color), isHidden = entity.isHidden, isBuiltIn = false)
+                    ManagedCategoryUiModel(
+                        name = entity.name,
+                        color = Color(entity.color),
+                        icon = categoryIcon(false, entity.name, expenseCategories, incomeCategories),
+                        isHidden = entity.isHidden,
+                        isBuiltIn = false,
+                    )
                 }
                 CategoryManagementScreen(
                     categories = fixedModels + customModels,
@@ -208,12 +216,19 @@ fun SettingsRoute(onClose: () -> Unit, entryPoint: SettingsEntryPoint = Settings
                     ManagedCategoryUiModel(
                         name = name,
                         color = categoryColor(true, name, expenseCategories, incomeCategories),
+                        icon = categoryIcon(true, name, expenseCategories, incomeCategories),
                         isHidden = name in hiddenFixed,
                         isBuiltIn = true,
                     )
                 }
                 val customModels = incomeCategories.map { entity ->
-                    ManagedCategoryUiModel(name = entity.name, color = Color(entity.color), isHidden = entity.isHidden, isBuiltIn = false)
+                    ManagedCategoryUiModel(
+                        name = entity.name,
+                        color = Color(entity.color),
+                        icon = categoryIcon(true, entity.name, expenseCategories, incomeCategories),
+                        isHidden = entity.isHidden,
+                        isBuiltIn = false,
+                    )
                 }
                 SourceManagementScreen(
                     sources = fixedModels + customModels,
