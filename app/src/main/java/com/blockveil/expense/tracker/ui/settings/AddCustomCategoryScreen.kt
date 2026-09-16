@@ -38,7 +38,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.blockveil.expense.tracker.ui.components.AppTextField
 import com.blockveil.expense.tracker.ui.components.BackHeader
-import com.blockveil.expense.tracker.ui.components.CUSTOM_CATEGORY_ICON_CHOICES
+import com.blockveil.expense.tracker.ui.components.EXPENSE_CATEGORY_ICON_CHOICES
+import com.blockveil.expense.tracker.ui.components.INCOME_SOURCE_ICON_CHOICES
 import com.blockveil.expense.tracker.ui.components.SectionHeader
 import com.blockveil.expense.tracker.ui.theme.BrandDanger
 import com.blockveil.expense.tracker.ui.theme.CustomCategoryPalette
@@ -46,7 +47,7 @@ import com.blockveil.expense.tracker.ui.theme.CustomCategoryPalette
 /**
  * Creation form shared by "Add Custom Category" (expense) and "Add Custom Source" (income):
  * a name, a color (one of [CustomCategoryPalette] or a typed-in hex), and an icon from
- * [CUSTOM_CATEGORY_ICON_CHOICES]. Reached from the always-visible top button on
+ * [EXPENSE_CATEGORY_ICON_CHOICES] or [INCOME_SOURCE_ICON_CHOICES]. Reached from the always-visible top button on
  * CategoryManagementScreen / SourceManagementScreen, and from tapping "Custom" in the
  * transaction form's category/source picker (see TransactionFormScreen).
  */
@@ -61,7 +62,8 @@ fun AddCustomCategoryScreen(
     var name by remember { mutableStateOf("") }
     var selectedColor by remember { mutableStateOf(CustomCategoryPalette.first()) }
     var hexText by remember { mutableStateOf("") }
-    var selectedIcon by remember { mutableStateOf(CUSTOM_CATEGORY_ICON_CHOICES.first().first) }
+    val iconChoices = if (isIncome) INCOME_SOURCE_ICON_CHOICES else EXPENSE_CATEGORY_ICON_CHOICES
+    var selectedIcon by remember { mutableStateOf(iconChoices.first().first) }
     var error by remember { mutableStateOf<String?>(null) }
 
     val noun = if (isIncome) "source" else "category"
@@ -106,7 +108,7 @@ fun AddCustomCategoryScreen(
 
             SectionHeader(title = "Icon", modifier = Modifier.padding(top = 20.dp, bottom = 8.dp))
             FlowRow(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                CUSTOM_CATEGORY_ICON_CHOICES.forEach { (key, icon) ->
+                iconChoices.forEach { (key, icon) ->
                     IconSwatch(
                         icon = icon,
                         color = selectedColor,
