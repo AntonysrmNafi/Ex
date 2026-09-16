@@ -21,6 +21,6 @@ data class CustomCategoryEntity(
     /** Hidden categories drop out of the picker for new transactions but keep showing on
      *  past transactions that already used them, same as a fixed category being hidden. */
     val isHidden: Boolean = false,
-    /** Key into CUSTOM_CATEGORY_ICON_CHOICES (see CategoryIcons.kt); "Sell" if unset. */
+    /** Key into EXPENSE_CATEGORY_ICON_CHOICES or INCOME_SOURCE_ICON_CHOICES depending on isIncome (see CategoryIcons.kt); "Sell" if unset. */
     val icon: String = "Sell",
 )
