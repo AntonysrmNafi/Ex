@@ -38,7 +38,7 @@ class HomeViewModel(
 
     private val sources = combine(
         transactionRepository.observeAll(),
-        accountRepository.observeVisible(),
+        accountRepository.observeDisplayable(),
         customCategoryRepository.observeExpenseCategories(),
         customCategoryRepository.observeIncomeCategories(),
     ) { transactions, accounts, customExpense, customIncome ->
