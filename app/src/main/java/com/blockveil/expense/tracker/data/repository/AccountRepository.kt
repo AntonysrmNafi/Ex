@@ -2,7 +2,9 @@ package com.blockveil.expense.tracker.data.repository
 
 import com.blockveil.expense.tracker.data.local.AppDatabase
 import com.blockveil.expense.tracker.data.local.entity.AccountEntity
+import com.blockveil.expense.tracker.util.isDisplayableWhileHidden
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 
 class AccountRepository(db: AppDatabase) {
 
@@ -10,8 +12,15 @@ class AccountRepository(db: AppDatabase) {
 
     fun observeAll(): Flow<List<AccountEntity>> = dao.observeAll()
 
-    /** Excludes hidden accounts, for anywhere an account can be picked for a new transaction/transfer or listed on Home. */
+    /** Strictly excludes every hidden account, regardless of balance. For pickers where a new
+     *  transaction/transfer gets posted against an account -- a hidden account can never receive one. */
     fun observeVisible(): Flow<List<AccountEntity>> = dao.observeVisible()
+
+    /** Excludes hidden accounts once their balance reaches zero, but keeps a hidden account with
+     *  a real balance still on-screen. For read-only lists (Home's account strip, More's account
+     *  list) -- not for new-transaction pickers, which should use [observeVisible] instead. */
+    fun observeDisplayable(): Flow<List<AccountEntity>> =
+        dao.observeAll().map { accounts -> accounts.filter { it.isDisplayableWhileHidden() } }
 
     suspend fun getById(id: Long): AccountEntity? = dao.getById(id)
 
