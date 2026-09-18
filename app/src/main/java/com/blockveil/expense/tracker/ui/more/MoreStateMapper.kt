@@ -1,87 +1,67 @@
-package com.blockveil.expense.tracker.ui.home
+package com.blockveil.expense.tracker.ui.more
 
-import com.blockveil.expense.tracker.data.datastore.AppSettings
 import com.blockveil.expense.tracker.data.local.entity.AccountEntity
-import com.blockveil.expense.tracker.data.local.entity.CustomCategoryEntity
-import com.blockveil.expense.tracker.data.local.entity.TransactionEntity
+import com.blockveil.expense.tracker.data.local.entity.SubscriptionEntity
 import com.blockveil.expense.tracker.data.model.AccountCategory
-import com.blockveil.expense.tracker.data.model.SavingsType
-import com.blockveil.expense.tracker.data.model.TransactionType
-import com.blockveil.expense.tracker.ui.components.toRowUiModel
-import com.blockveil.expense.tracker.util.computeEffectiveBudget
-import com.blockveil.expense.tracker.util.resolveCurrencyDisplay
-import java.time.LocalDate
-import java.time.YearMonth
+import com.blockveil.expense.tracker.data.model.CurrencyFormat
+import com.blockveil.expense.tracker.data.model.CurrencyPosition
+import com.blockveil.expense.tracker.util.CurrencyDisplay
+import com.blockveil.expense.tracker.util.isDisplayableWhileHidden
+import com.blockveil.expense.tracker.util.monthlyEquivalent
 
-/** Everything the mapper needs from the repositories, bundled so ViewModel combine() stays simple. */
-data class HomeSources(
-    val transactions: List<TransactionEntity>,
-    val accounts: List<AccountEntity>,
-    val customExpenseCategories: List<CustomCategoryEntity>,
-    val customIncomeCategories: List<CustomCategoryEntity>,
+data class MoreUiState(
+    val isLoading: Boolean = true,
+    val netWorth: Double = 0.0,
+    val accounts: List<AccountEntity> = emptyList(),
+    val subscriptions: List<SubscriptionEntity> = emptyList(),
+    val subTotal: Double = 0.0,
+    val flagged: List<FlaggedSubscription> = emptyList(),
+    val currency: CurrencyDisplay = CurrencyDisplay(symbol = "৳", position = CurrencyPosition.PREFIX, format = CurrencyFormat.GROUPED),
 )
 
-private const val RECENT_LIMIT = 5
+private const val FLAG_RATIO_THRESHOLD = 2.0
 
 /**
- * Builds [HomeUiState] from raw data. Matches the source design's homeTransactions /
- * homeExpenseTotal / homeIncomeTotal / dateFilterLabel / effectiveBudget derivations.
+ * Net worth = every savings account's balance, minus every loan's remaining balance.
+ * subTotal = sum of each active subscription's monthly equivalent. flagged = active
+ * subscriptions costing at least [FLAG_RATIO_THRESHOLD]x the average active subscription.
+ * Matches the netWorth/subTotal/flagged useMemo blocks in the source design exactly.
  */
-fun buildHomeUiState(
-    sources: HomeSources,
-    settings: AppSettings,
-    filter: DateFilter,
-    currentMonth: YearMonth,
-    today: LocalDate = LocalDate.now(),
-): HomeUiState {
-    val range = filter.dateRangeOrNull(currentMonth, today)
-    val filtered = sources.transactions
-        .filter { range == null || (it.date >= range.first && it.date <= range.second) }
-        // Repository queries already order by date desc, but re-sorting here keeps this
-        // function correct on its own, independent of the caller's query order.
-        .sortedWith(compareByDescending<TransactionEntity> { it.date }.thenByDescending { it.id })
-
-    val expenseTotal = filtered.filter { it.type == TransactionType.EXPENSE }.sumOf { it.amount }
-    val incomeTotal = filtered.filter { it.type == TransactionType.INCOME }.sumOf { it.amount }
-
-    val isMonthFilter = filter == DateFilter.Month
-    val showPeriodArrows = filter !is DateFilter.All
-    val effectiveBudget = computeEffectiveBudget(settings.budget, settings.rollingEnabled, currentMonth, sources.transactions)
-
-    val accountUiModels = sources.accounts.map { account -> account.toStripUiModel() }
-
-    val recent = filtered.take(RECENT_LIMIT).map { txn ->
-        txn.toRowUiModel(sources.accounts, sources.customExpenseCategories, sources.customIncomeCategories)
+fun buildMoreUiState(
+    accounts: List<AccountEntity>,
+    subscriptions: List<SubscriptionEntity>,
+    currency: CurrencyDisplay,
+): MoreUiState {
+    val netWorth = accounts.sumOf { account ->
+        if (account.category == AccountCategory.LOAN) {
+            -((account.principal ?: 0.0) - (account.repaid ?: 0.0))
+        } else {
+            account.balance ?: 0.0
+        }
     }
 
-    return HomeUiState(
-        isLoading = false,
-        filterLabel = filter.label(currentMonth),
-        showPeriodArrows = showPeriodArrows,
-        expenseTotal = expenseTotal,
-        incomeTotal = incomeTotal,
-        budget = effectiveBudget,
-        showBudget = isMonthFilter,
-        currency = resolveCurrencyDisplay(settings),
-        accounts = accountUiModels,
-        hasSavingsAccount = sources.accounts.any { it.category == AccountCategory.SAVINGS },
-        recentTransactions = recent,
-        totalTransactionCount = filtered.size,
-    )
-}
+    val activeMonthlyAmounts = subscriptions
+        .filter { it.active }
+        .map { it to monthlyEquivalent(it.cycle, it.amount) }
 
-private fun AccountEntity.toStripUiModel(): AccountStripUiModel {
-    val isLoan = category == AccountCategory.LOAN
-    val displayAmount: Double
-    val subLabel: String
-    if (isLoan) {
-        displayAmount = (principal ?: 0.0) - (repaid ?: 0.0)
-        subLabel = if (active) "Loan remaining" else "Loan settled"
+    val subTotal = activeMonthlyAmounts.sumOf { it.second }
+    val average = if (activeMonthlyAmounts.isNotEmpty()) subTotal / activeMonthlyAmounts.size else 0.0
+
+    val flagged = if (average > 0) {
+        activeMonthlyAmounts
+            .filter { it.second >= average * FLAG_RATIO_THRESHOLD }
+            .map { (subscription, monthly) -> FlaggedSubscription(subscription.name, monthly / average) }
     } else {
-        displayAmount = balance ?: 0.0
-        // Raw enum-name formatting, e.g. SavingsType.MOBILE_WALLET -> "MOBILE WALLET",
-        // matches account.type.replace("_", " ") in the source design exactly (no title-casing).
-        subLabel = (type ?: SavingsType.CASH).name.replace("_", " ")
+        emptyList()
     }
-    return AccountStripUiModel(id = id, name = name, isLoan = isLoan, displayAmount = displayAmount, subLabel = subLabel)
+
+    return MoreUiState(
+        isLoading = false,
+        netWorth = netWorth,
+        accounts = accounts.filter { it.isDisplayableWhileHidden() },
+        subscriptions = subscriptions,
+        subTotal = subTotal,
+        flagged = flagged,
+        currency = currency,
+    )
 }
