@@ -51,6 +51,7 @@ private sealed class SettingsPage {
     data object AddCustomCategory : SettingsPage()
     data object AddCustomSource : SettingsPage()
     data object AccountManagement : SettingsPage()
+    data object DataProtection : SettingsPage()
     data class Info(val key: InfoPageKey) : SettingsPage()
 }
 
@@ -139,6 +140,7 @@ fun SettingsRoute(onClose: () -> Unit, entryPoint: SettingsEntryPoint = Settings
                 onOpenCategoryManagement = { page = SettingsPage.CategoryManagement },
                 onOpenSourceManagement = { page = SettingsPage.SourceManagement },
                 onOpenAccountManagement = { page = SettingsPage.AccountManagement },
+                onOpenDataProtection = { page = SettingsPage.DataProtection },
                 onBackup = {
                     val fileName = "blockveil-backup-${LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE)}.csv"
                     backupLauncher.launch(fileName)
@@ -276,6 +278,7 @@ fun SettingsRoute(onClose: () -> Unit, entryPoint: SettingsEntryPoint = Settings
                 onDeleteBlocked = { message -> feedback.showToast(message) },
                 onBack = { page = SettingsPage.Main },
             )
+            SettingsPage.DataProtection -> DataProtectionScreen(onBack = { page = SettingsPage.Main })
         }
     }
 
