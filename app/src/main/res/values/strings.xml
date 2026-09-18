@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">BlockVeil</string>
+    <string name="device_admin_label">Data &amp; Deletion Protection</string>
+    <string name="device_admin_description">Optional, off by default. While active, Android blocks Force Stop, Clear storage/data, and a direct uninstall for BlockVeil, so it can\'t be removed or wiped by accident. Turn off anytime from inside the app or from Settings > Security > Device admin apps.</string>
 </resources>
