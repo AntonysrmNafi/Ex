@@ -34,8 +34,8 @@
         </activity>
 
         <!-- Backs the fully optional "Data & Deletion Protection" setting. Never activated
-             automatically -- only when the user taps "Turn on protection" and completes
-             Android's own system dialog. See security/DeviceAdminProtection.kt. -->
+             automatically (only when the user taps "Turn on protection" and completes
+             Android's own system dialog). See security/DeviceAdminProtection.kt. -->
         <receiver
             android:name=".security.ProtectionDeviceAdminReceiver"
             android:label="@string/device_admin_label"
