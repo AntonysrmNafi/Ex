@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Deliberately requests no policies. This admin exists only so Android disables Force
-     Stop / Clear storage / Clear data and blocks a direct uninstall while it's active --
-     every one of those is the OS's own built-in behavior for any active device admin, not
-     something this app implements. It never asks for password rules, remote wipe, camera
+     Stop, Clear storage, and Clear data, and blocks a direct uninstall while it's active
+     (every one of those is the OS's own built-in behavior for any active device admin, not
+     something this app implements). It never asks for password rules, remote wipe, camera
      disabling, or any other device-admin capability. -->
 <device-admin xmlns:android="http://schemas.android.com/apk/res/android">
     <uses-policies />
