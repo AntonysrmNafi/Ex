@@ -14,6 +14,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Download
+import androidx.compose.material.icons.filled.Shield
 import androidx.compose.material.icons.filled.Upload
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -47,6 +48,7 @@ fun SettingsScreen(
     onOpenCategoryManagement: () -> Unit,
     onOpenSourceManagement: () -> Unit,
     onOpenAccountManagement: () -> Unit,
+    onOpenDataProtection: () -> Unit,
     onBackup: () -> Unit,
     onRestore: () -> Unit,
     onClearAllData: () -> Unit,
@@ -105,6 +107,13 @@ fun SettingsScreen(
                 title = "Restore",
                 description = "Load your data from a backup CSV file",
                 onClick = onRestore,
+                modifier = Modifier.padding(bottom = 8.dp),
+            )
+            SettingsActionRow(
+                icon = Icons.Filled.Shield,
+                title = "Data & Deletion Protection",
+                description = "Optional: block accidental uninstall or data clearing",
+                onClick = onOpenDataProtection,
                 modifier = Modifier.padding(bottom = 8.dp),
             )
             SettingsActionRow(
